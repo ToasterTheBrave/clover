@@ -37,8 +37,9 @@ Clover consists of 3 services, but also relies on the existence of two other pie
 1. Example System: Standard setup of a web system architecture, consisting of servers, load balancers, and databases.
 2. Metric Extractors: Extract all available metrics from our example system, saving the data in a data store where Clover can access it.
 3. Metric Processing Service: Read in metrics and determine if each is normal or anomalous.  In the event that a watched metric is anomalous, invoke the alerting and report building services.
-4. Alerting Service: Alert the user that an anomaly was detected in the watched metric.
+4. Alerting Service: Alert the user that an anomaly was detected in the watched metric.  This service makes a call to the reporting service to build the report that will be sent to the user.
 5. Report Building Service: For a given watched metric anomaly, build a timeline of relevant anomalous metrics leading up to the watched metric anomaly.
+6. Actually send the alert to the user.
 
 System Architecture
 ----------
