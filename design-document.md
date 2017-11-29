@@ -11,7 +11,7 @@ In distributed systems, tracing the root cause of errors can be especially diffi
 The purpose of this software design document is to outline the layout and implementation of Clover, a root cause analysis system designed for distributed systems.  Clover continuously monitors all available metrics and models when each metric is normal or anomalous.  In the event of an anomaly in our watched metric, Clover builds a report of other relevant anomalous metrics leading up to the watched metric anomaly and alerts the user.
 
 #### Scope
-This document describes a root cause analysis system, named Clover.  Clover consists of 3 main services.  The first service processes all available metrics to determine what is normal, and what is anomalous.  The second service alerts a user when our user when a watched metric becomes anomalous.  The third service builds a timeline report of all other metrics that became anomalous leading up to the anomaly in our watched metric. 
+This document describes a root cause analysis system, named Clover.  Clover consists of 3 main services.  The first service processes all available metrics to determine what is normal, and what is anomalous.  The second service alerts a user when a watched metric becomes anomalous.  The third service builds a timeline report of all other metrics that became anomalous leading up to the anomaly in our watched metric. 
 
 In order to give an example of Clover working, there are two additional pieces that must be included.  First, an example system to produce metrics for consumption and evaluation must be constructed.  This example system must also have failures injected into it.  Second, these metrics must be pushed to Clover.
 
@@ -19,14 +19,14 @@ In order to give an example of Clover working, there are two additional pieces t
 This document starts with a high level overview of the three services that make up Clover.  Afterward, we will do a deep dive into the architecture of each service and explore how they work together to form a complete system.
 
 #### Reference Material
-Docker: A container technology that allows us to easily run multiple services in isolation on a shared host.  https://www.docker.com
-Gremlins: A Fault injector used to simulate issues in the example system.  https://github.com/allingeek/gremlins
-cAdvisor: A service that monitors resource usage and performance of running docker containers.  https://hub.docker.com/r/google/cadvisor
-InfluxDB: A time series database.  https://github.com/influxdata/influxdb
+**Docker**: A container technology that allows us to easily run multiple services in isolation on a shared host.  https://www.docker.com  
+**Gremlins**: A Fault injector used to simulate issues in the example system.  https://github.com/allingeek/gremlins  
+**cAdvisor**: A service that monitors resource usage and performance of running docker containers.  https://hub.docker.com/r/google/cadvisor  
+**InfluxDB**: A time series database.  https://github.com/influxdata/influxdb
 
 #### Definitions and Acronyms
-Clover: The name given to this software.
-Watched Metric: A metric that has been determined to be of importance to the end user.  When this metric becomes anomalous, Clover will build a report and alert.
+**Clover**: The name given to this software.  
+**Watched Metric**: A metric that has been determined to be of importance to the end user.  When this metric becomes anomalous, Clover will build a report and alert.
 
 System Overview
 ----------
@@ -36,7 +36,7 @@ Clover consists of 3 services, but also relies on the existence of two other pie
 
 1. Example System: Standard setup of a web system architecture, consisting of servers, load balancers, and databases.
 2. Metric Extractors: Extract all available metrics from our example system, saving the data in a data store where Clover can access it.
-3. Metric Processing Service: Read in metrics and determine if each is normal or anomalous.  In the even that a watched metric is anomalous, invoke the alerting and report building services.
+3. Metric Processing Service: Read in metrics and determine if each is normal or anomalous.  In the event that a watched metric is anomalous, invoke the alerting and report building services.
 4. Alerting Service: Alert the user that an anomaly was detected in the watched metric.
 5. Report Building Service: For a given watched metric anomaly, build a timeline of relevant anomalous metrics leading up to the watched metric anomaly.
 
@@ -50,7 +50,7 @@ The example system consists of a Nginx load balancer to direct traffic between 4
 
 ![Example System](https://raw.githubusercontent.com/truppert/clover/master/example-system.png)
 
-This system will be set up using Docker.  We artificially inject failure into the example system using a tool called Gremlins (https://github.com/allingeek/gremlins).  With this tool, we can inject failure at different points in the system.
+This system will be set up using Docker.  We artificially inject failure into the example system using a tool called Gremlins.  With this tool, we can inject failure at different points in the system.
 
 #### Metric Extractors
 Once we have a running example system, we need to export metrics from this system.  The metrics that are interesting are things like cpu load, free disk space, and all other system-level metrics that we can track.  
@@ -68,11 +68,11 @@ As metrics are streamed to InfluxDB, they will be instantly pulled in and proces
 
 ![Metric Processing Service](https://raw.githubusercontent.com/truppert/clover/master/metrics-processing-service.png)
 
-There are different models applied to different metrics to determine what is "normal" for each metric.  For example, a disk space metric is considered normal as long as it remains consistent and below a specified threshold.  CPU load is considered normal as long as it remains within a range, never spiking.  There models are manually assigned to the metrics.  Such metadata for metrics is stored in a MySQL database and manually altered when necessary.
+There are different models applied to different metrics to determine what is "normal" for each metric.  For example, a disk space metric is considered normal as long as it remains consistent and below a specified threshold.  CPU load is considered normal as long as it remains within a range, never spiking.  These models are manually assigned to the metrics.  Such metadata for metrics is stored in a MySQL database and manually altered when necessary.
 
-The metrics are evaluated on a sliding window of time.  This allows us to watch anomalies in reference to current, recent behavior.  This allows us to set thresholds based on a percentage range outside of the recent norm.
+The metrics are evaluated on a sliding window of time.  This allows us to watch anomalies in reference to current, recent behavior and set thresholds based on a percentage range outside of the recent norm.
 
-This service will be written in Scala, using Apache Spark.  Apache spark allows us to scale nicely for a large number of metrics and has built in support for evaluating data in a sliding window of time.  It also has built in Machine Learning libraries that may come in handy as we are building our models.
+This service will be written in Scala, using Apache Spark.  Apache Spark allows us to scale nicely for a large number of metrics and has built in support for evaluating data in a sliding window of time.  It also has built in Machine Learning libraries that may come in handy as we are building our models.
 
 When a metric becomes anomalous, it is simply noted as such in our data store.  When a tracked metric becomes anomalous, it is picked up and acted upon by the alerting service, requiring no special treatment by the metric processing service.
 
