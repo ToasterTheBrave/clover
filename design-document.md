@@ -8,12 +8,12 @@ Introduction
 ----------
 In distributed systems, tracing the root cause of errors can be especially difficult.  The metrics we monitor for performance often do not give much insight into what is actually wrong with the system.  In web systems, for instance, the page load time is a very closely watched metric.  When this grows or spikes, there is no easy way to determine the cause.  There are simply too many metrics for a human being to monitor.  Small, seemingly insignificant metrics could potentially be the cause of catastrophic failure in a system.
 
-The purpose of this software design document is to outline the layout and implementation of Clover, a root cause analysis system designed for distributed systems.  Clover continuously monitors all available metrics and models when each metric is normal or anomlous.  In the event of an anomaly in our watched metric, Clover builds a report of other relevant anomalous metrics leading up to the watched metric anomaly and alerts the user.
+The purpose of this software design document is to outline the layout and implementation of Clover, a root cause analysis system designed for distributed systems.  Clover continuously monitors all available metrics and models when each metric is normal or anomalous.  In the event of an anomaly in our watched metric, Clover builds a report of other relevant anomalous metrics leading up to the watched metric anomaly and alerts the user.
 
 #### Scope
 This document describes a root cause analysis system, named Clover.  Clover consists of 3 main services.  The first service processes all available metrics to determine what is normal, and what is anomalous.  The second service alerts a user when our user when a watched metric becomes anomalous.  The third service builds a timeline report of all other metrics that became anomalous leading up to the anomaly in our watched metric. 
 
-In order to give an exaple of Clover working, there are two additional pieces that must be included.  First, an example system to produce metrics for consumption and evaluation must be constructed.  This example system must also have failures injected into it.  Second, these metrics must be pushed to Clover.
+In order to give an example of Clover working, there are two additional pieces that must be included.  First, an example system to produce metrics for consumption and evaluation must be constructed.  This example system must also have failures injected into it.  Second, these metrics must be pushed to Clover.
 
 #### Overview
 This document starts with a high level overview of the three services that make up Clover.  Afterward, we will do a deep dive into the architecture of each service and explore how they work together to form a complete system.
@@ -60,7 +60,7 @@ This extraction of metrics is out of scope for Clover.  This is expected to alre
 In addition to the metrics provided by cAdvisor, we will also be tracking the page load time of our app.  Often times, this is taken from application log files.  We will be directly saving this metric in InfluxDB.
 
 #### Metric Processing Service Design
-The first service of Clover evaluates all available metrics passed in by our metric extractors (cAdvisor and our direct extractor for page load time).  These metrics are processed in real time and the evaluated value is storred in an data store for later use.
+The first service of Clover evaluates all available metrics passed in by our metric extractors (cAdvisor and our direct extractor for page load time).  These metrics are processed in real time and the evaluated value is stored in an data store for later use.
 
 The metric processing service is the largest contribution of Clover, and will require the most work.  The evaluation of a plethora of metrics and determination of what is normal and what is anomalous paves the way for understanding the cascading failures of our system.
 
@@ -68,9 +68,9 @@ As metrics are streamed to InfluxDB, they will be instantly pulled in and proces
 
 ![Metric Processing Service](https://raw.githubusercontent.com/truppert/clover/master/metrics-processing-service.png)
 
-There are different models applied to different metrics to determine what is "normal" for each metric.  For example, a disk space metric is considered normal as long as it remains consistent and below a specified threshold.  CPU load is considered normal as long as it remains within a range, never spiking.  There models are manually assigned to the metrics.  Such metadata for metrics is storred in a MySQL database and manually altered when necessary.
+There are different models applied to different metrics to determine what is "normal" for each metric.  For example, a disk space metric is considered normal as long as it remains consistent and below a specified threshold.  CPU load is considered normal as long as it remains within a range, never spiking.  There models are manually assigned to the metrics.  Such metadata for metrics is stored in a MySQL database and manually altered when necessary.
 
-The metrics are evaluated on a sliding window of time.  This allows us to watch anomolies in reference to current, recent behavior.  This allows us to set thresholds based on a percentage range outside of the recent norm.
+The metrics are evaluated on a sliding window of time.  This allows us to watch anomalies in reference to current, recent behavior.  This allows us to set thresholds based on a percentage range outside of the recent norm.
 
 This service will be written in Scala, using Apache Spark.  Apache spark allows us to scale nicely for a large number of metrics and has built in support for evaluating data in a sliding window of time.  It also has built in Machine Learning libraries that may come in handy as we are building our models.
 
@@ -86,9 +86,9 @@ We need to alert the user when our tracked metric becomes anomalous. The alertin
 
 The final service needed is the report building service.  This service is called when our watched metric, response time, becomes anomalous.  We will call the time that this watched metric became anomalous our "report time," meaning the time the report became necessary.
 
-By the time this service is called, we have already collected and evaluated all the necessary metrics.  We have already determined what metrics have been anomalous, when they became such, and how long they remained so.  This allows us to build a report of the state of the suystem leading up to our report time.
+By the time this service is called, we have already collected and evaluated all the necessary metrics.  We have already determined what metrics have been anomalous, when they became such, and how long they remained so.  This allows us to build a report of the state of the system leading up to our report time.
 
-The report building service takes the top 10 anomalous metrics in the hour leading up to the report time.  Anomolies closer to the report time are weighted as more important.
+The report building service takes the top 10 anomalous metrics in the hour leading up to the report time.  Anomalies closer to the report time are weighted as more important.
 
 The report data is saved in MySQL and displayed to the user in a single page web interface.  This web UI is built using Ruby on Rails, an easy to use web framework.  Previous reports remain available in the event they are later needed.
 
