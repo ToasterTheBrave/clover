@@ -45,7 +45,7 @@ System Architecture
 ----------
 
 #### Example System
-In order to show the usefulness of Clover, we need a test system to monitor and inject failure into.  This system exists outside of Clover and simulates a real-world architecture like would be seen in a common web application.  It is purposefully complex in order to show the usefulness of Clover.
+In order to show the usefulness of Clover, we need a test system that we can monitor and into which we can inject failure.  This system exists outside of Clover and simulates a real-world architecture like would be seen in a common web application.
 
 The example system consists of a Nginx load balancer to direct traffic between 4 application servers.  Each application server makes a call to a MySQL Database, as well as to an Elasticsearch Cluster.  The data collected from these two data stores is returned to the user, and the response time of the request is our watched metric.
 
@@ -69,7 +69,7 @@ As metrics are streamed to InfluxDB, they will be instantly pulled in and proces
 
 ![Metric Processing Service](https://raw.githubusercontent.com/truppert/clover/master/metrics-processing-service.png)
 
-There are different models applied to different metrics to determine what is "normal" for each metric.  For example, a disk space metric is considered normal as long as it remains consistent and below a specified threshold.  CPU load is considered normal as long as it remains within a range, never spiking.  These models are manually assigned to the metrics.  Such metadata for metrics is stored in a MySQL database and manually altered when necessary.
+There are different models applied to different metrics to determine what is "normal" for each metric.  For example, a disk space metric is considered normal as long as it remains below a specified threshold, such as 90% of total.  CPU load is considered normal as long as it remains within a range, never spiking.  These models are manually assigned to the metrics.  Such metadata for metrics is stored in a MySQL database and manually altered when necessary.
 
 The metrics are evaluated on a sliding window of time.  This allows us to watch anomalies in reference to current, recent behavior and set thresholds based on a percentage range outside of the recent norm.
 
