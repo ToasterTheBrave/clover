@@ -45,7 +45,7 @@ The six pieces will be completed in order, and are as follows:
 Before start of the semester
   * Write project proposal and design document.
   * Build example system and set up metric extractors.
-  * Set up Grafana for visually verifying metrics are as expected while testing various pieces of Clover.
+  * Set up traditional monitoring tools that will be used to visually verify metrics are as expected while testing various pieces of Clover.
 
 Jan 16 - 28 (~2 weeks)
   * Set up and test ability to inject anomalies into the example system
