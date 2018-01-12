@@ -10,13 +10,13 @@ Clover: A root cause analysis system for distributed systems
 Approved by:
 
 \_______________________________________ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: \_____________  
-Advisor: Yanyan Zhuang
+Advisor: Dr. Yanyan Zhuang
 
 \_______________________________________ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: \_____________  
-Committee member: 
+Committee member: Dr. Albert Glock
 
 \_______________________________________ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: \_____________  
-Committee member: 
+Committee member: Dr. Sang-Yoon Chang
 
 
 ### Background Information
