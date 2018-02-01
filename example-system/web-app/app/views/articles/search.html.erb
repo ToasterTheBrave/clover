@@ -1,6 +1,8 @@
 <p id="notice"><%= notice %></p>
 
-<h1>Articles</h1>
+<h1>Search - Articles</h1>
+
+<h2>Query: <%= @query %></h2>
 
 <table>
   <thead>
@@ -49,7 +51,3 @@
     <% end %>
   </tbody>
 </table>
-
-<br>
-
-<%= link_to 'New Article', new_article_path %>

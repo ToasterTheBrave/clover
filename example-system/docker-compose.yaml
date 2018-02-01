@@ -1,25 +1,208 @@
 version: '2'
 
+volumes:
+  mysql_data: {}
+  es_data_1: {}
+  es_data_2: {}
+  es_data_3: {}
+  es_data_4: {}
+  es_data_5: {}
+
+networks:
+  esnet:
+  webapp:
+  mysql:
+
 services:
 
   mysql:
     image: mysql:5.7
+    volumes:
+    - mysql_data:/var/lib/mysql
     environment:
     - MYSQL_ROOT_PASSWORD=dHlsZXJ3YXNoZXJlCg
     expose:
     - "3306"
+    networks:
+    - mysql
+
+  es_head:
+    image: mobz/elasticsearch-head:5
     ports:
-    - 3307:3306
+    - 9100:9100
+    networks:
+    - esnet
+
+  es_master_1:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    container_name: es_master_1
+    environment:
+    - cluster.name=webapp-cluster
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_2,es_master_3"
+    - "discovery.zen.minimum_master_nodes=2"
+    - "node.master=true"
+    - "node.data=false"
+    - "node.name=es_master_1"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+    - 9200:9200
+    networks:
+    - esnet
+
+  es_master_2:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    container_name: es_master_2
+    environment:
+    - cluster.name=webapp-cluster
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_3"
+    - "discovery.zen.minimum_master_nodes=2"
+    - "node.master=true"
+    - "node.data=false"
+    - "node.name=es_master_2"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+    - esnet
+
+  es_master_3:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    container_name: es_master_3
+    environment:
+    - cluster.name=webapp-cluster
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_2"
+    - "discovery.zen.minimum_master_nodes=2"
+    - "node.master=true"
+    - "node.data=false"
+    - "node.name=es_master_3"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+    - esnet
+
+  es_data_1:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    container_name: es_data_1
+    volumes:
+    - es_data_1:/usr/share/elasticsearch/data
+    environment:
+    - cluster.name=webapp-cluster
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_2,es_master_3"
+    - "node.master=false"
+    - "node.data=true"
+    - "node.name=es_data_1"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+    - esnet
+
+  es_data_2:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    container_name: es_data_2
+    volumes:
+    - es_data_2:/usr/share/elasticsearch/data
+    environment:
+    - cluster.name=webapp-cluster
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_2,es_master_3"
+    - "node.master=false"
+    - "node.data=true"
+    - "node.name=es_data_2"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+    - esnet
+
+  es_data_3:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    container_name: es_data_3
+    volumes:
+    - es_data_3:/usr/share/elasticsearch/data
+    environment:
+    - cluster.name=webapp-cluster
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_2,es_master_3"
+    - "node.master=false"
+    - "node.data=true"
+    - "node.name=es_data_3"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+    - esnet
+
+  es_data_4:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    container_name: es_data_4
+    volumes:
+    - es_data_4:/usr/share/elasticsearch/data
+    environment:
+    - cluster.name=webapp-cluster
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_2,es_master_3"
+    - "node.master=false"
+    - "node.data=true"
+    - "node.name=es_data_4"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+    - esnet
+
+  es_data_5:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    container_name: es_data_5
+    volumes:
+    - es_data_5:/usr/share/elasticsearch/data
+    environment:
+    - cluster.name=webapp-cluster
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_2,es_master_3"
+    - "node.master=false"
+    - "node.data=true"
+    - "node.name=es_data_5"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+    - esnet
 
   web_app:
     build: ./web-app
     volumes:
     - ./web-app:/app/web-app
-    # ports:
-    # - 3000:3000
     links:
     - "mysql:mysql"
     command: "rails server --pid /tmp/server.pid"
+    networks:
+    - webapp
+    - esnet
+    - mysql
 
   proxy:
     image: nginx:1.13.7
@@ -27,5 +210,5 @@ services:
     - ./nginx:/etc/nginx
     ports:
     - "80:80"
-    links:
-    - web_app
+    networks:
+    - webapp

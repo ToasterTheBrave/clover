@@ -9,7 +9,7 @@
   </head>
 
   <body>
+    <div id="header">Host: <%= ENV['HOSTNAME'] %></div>
     <%= yield %>
-    <div id="footer">Host: <%= ENV['HOSTNAME'] %></div>
   </body>
 </html>

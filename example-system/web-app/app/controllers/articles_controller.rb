@@ -4,7 +4,13 @@ class ArticlesController < ApplicationController
   # GET /articles
   # GET /articles.json
   def index
-    @articles = Article.all
+    @articles = Article.limit(100)
+  end
+
+  def search
+    @query = params[:query]
+    # @articles = Article.limit(100)
+    @articles = Article.search(@query).records.limit(100)
   end
 
   # GET /articles/1
@@ -69,6 +75,6 @@ class ArticlesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def article_params
-      params.require(:article).permit(:title, :author, :body)
+      params.require(:article).permit(:headline_main, :headline_content_kicker, :headline_kicker, :print_headline, :byline, :web_url, :snippet, :lead_paragraph, :print_page, :source, :pub_date, :document_type, :section, :type_of_material, :word_count)
     end
 end

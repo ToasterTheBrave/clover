@@ -1,18 +1,78 @@
 <p id="notice"><%= notice %></p>
 
 <p>
-  <strong>Title:</strong>
-  <%= @article.title %>
+  <strong>Headline main:</strong>
+  <%= @article.headline_main %>
 </p>
 
 <p>
-  <strong>Author:</strong>
-  <%= @article.author %>
+  <strong>Headline content kicker:</strong>
+  <%= @article.headline_content_kicker %>
 </p>
 
 <p>
-  <strong>Body:</strong>
-  <%= @article.body %>
+  <strong>Headline kicker:</strong>
+  <%= @article.headline_kicker %>
+</p>
+
+<p>
+  <strong>Print headline:</strong>
+  <%= @article.print_headline %>
+</p>
+
+<p>
+  <strong>Byline:</strong>
+  <%= @article.byline %>
+</p>
+
+<p>
+  <strong>Web url:</strong>
+  <%= @article.web_url %>
+</p>
+
+<p>
+  <strong>Snippet:</strong>
+  <%= @article.snippet %>
+</p>
+
+<p>
+  <strong>Lead paragraph:</strong>
+  <%= @article.lead_paragraph %>
+</p>
+
+<p>
+  <strong>Print page:</strong>
+  <%= @article.print_page %>
+</p>
+
+<p>
+  <strong>Source:</strong>
+  <%= @article.source %>
+</p>
+
+<p>
+  <strong>Pub date:</strong>
+  <%= @article.pub_date %>
+</p>
+
+<p>
+  <strong>Document type:</strong>
+  <%= @article.document_type %>
+</p>
+
+<p>
+  <strong>Section:</strong>
+  <%= @article.section %>
+</p>
+
+<p>
+  <strong>Type of material:</strong>
+  <%= @article.type_of_material %>
+</p>
+
+<p>
+  <strong>Word count:</strong>
+  <%= @article.word_count %>
 </p>
 
 <%= link_to 'Edit', edit_article_path(@article) %> |

@@ -12,18 +12,78 @@
   <% end %>
 
   <div class="field">
-    <%= form.label :title %>
-    <%= form.text_field :title, id: :article_title %>
+    <%= form.label :headline_main %>
+    <%= form.text_field :headline_main, id: :article_headline_main %>
   </div>
 
   <div class="field">
-    <%= form.label :author %>
-    <%= form.text_field :author, id: :article_author %>
+    <%= form.label :headline_content_kicker %>
+    <%= form.text_field :headline_content_kicker, id: :article_headline_content_kicker %>
   </div>
 
   <div class="field">
-    <%= form.label :body %>
-    <%= form.text_area :body, id: :article_body %>
+    <%= form.label :headline_kicker %>
+    <%= form.text_field :headline_kicker, id: :article_headline_kicker %>
+  </div>
+
+  <div class="field">
+    <%= form.label :print_headline %>
+    <%= form.text_field :print_headline, id: :article_print_headline %>
+  </div>
+
+  <div class="field">
+    <%= form.label :byline %>
+    <%= form.text_field :byline, id: :article_byline %>
+  </div>
+
+  <div class="field">
+    <%= form.label :web_url %>
+    <%= form.text_field :web_url, id: :article_web_url %>
+  </div>
+
+  <div class="field">
+    <%= form.label :snippet %>
+    <%= form.text_field :snippet, id: :article_snippet %>
+  </div>
+
+  <div class="field">
+    <%= form.label :lead_paragraph %>
+    <%= form.text_area :lead_paragraph, id: :article_lead_paragraph %>
+  </div>
+
+  <div class="field">
+    <%= form.label :print_page %>
+    <%= form.number_field :print_page, id: :article_print_page %>
+  </div>
+
+  <div class="field">
+    <%= form.label :source %>
+    <%= form.text_field :source, id: :article_source %>
+  </div>
+
+  <div class="field">
+    <%= form.label :pub_date %>
+    <%= form.datetime_select :pub_date, id: :article_pub_date %>
+  </div>
+
+  <div class="field">
+    <%= form.label :document_type %>
+    <%= form.text_field :document_type, id: :article_document_type %>
+  </div>
+
+  <div class="field">
+    <%= form.label :section %>
+    <%= form.text_field :section, id: :article_section %>
+  </div>
+
+  <div class="field">
+    <%= form.label :type_of_material %>
+    <%= form.text_field :type_of_material, id: :article_type_of_material %>
+  </div>
+
+  <div class="field">
+    <%= form.label :word_count %>
+    <%= form.number_field :word_count, id: :article_word_count %>
   </div>
 
   <div class="actions">

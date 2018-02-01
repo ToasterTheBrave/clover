@@ -53,4 +53,7 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   config.lograge.enabled = true
+
+  config.web_console.whitelisted_ips = '172.22.0.0/16'
+
 end
