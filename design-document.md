@@ -8,10 +8,10 @@ Introduction
 ----------
 In distributed systems, tracing the root cause of errors can be especially difficult.  The metrics we monitor for performance often do not give much insight into what is actually wrong with the system.  In web systems, for instance, the page load time is a very closely watched metric.  When this grows or spikes, there is no easy way to determine the cause.  There are simply too many metrics for a human being to monitor.  Small, seemingly insignificant metrics could potentially be the cause of catastrophic failure in a system.
 
-The purpose of this software design document is to outline the layout and implementation of Clover, a root cause analysis system designed for distributed systems.  Clover continuously monitors all available metrics and models when each metric is normal or anomalous.  In the event of an anomaly in our watched metric, Clover builds a report of other relevant anomalous metrics leading up to the watched metric anomaly and alerts the user.
+The purpose of this software design document is to outline the layout and implementation of Clover, a root cause analysis system designed for distributed systems.  Clover continuously monitors all available metrics and models when each metric is normal or anomalous.  In the event of an anomaly in our trigger, Clover builds a report of other relevant anomalous metrics leading up to the trigger anomaly and alerts the user.
 
 #### Scope
-This document describes a root cause analysis system, named Clover.  Clover consists of 3 main services.  The first service processes all available metrics to determine what is normal, and what is anomalous.  The second service alerts a user when a watched metric becomes anomalous.  The third service builds a timeline report of all other metrics that became anomalous leading up to the anomaly in our watched metric. 
+This document describes a root cause analysis system, named Clover.  Clover consists of 3 main services.  The first service processes all available metrics to determine what is normal, and what is anomalous.  The second service alerts a user when a trigger becomes anomalous.  The third service builds a timeline report of all other metrics that became anomalous leading up to the anomaly in our trigger. 
 
 In order to give an example of Clover working, there are two additional pieces that must be included.  First, an example system to produce metrics for consumption and evaluation must be constructed.  This example system must also have failures injected into it.  Second, these metrics must be pushed to Clover.
 
@@ -26,7 +26,7 @@ This document starts with a high level overview of the three services that make 
 
 #### Definitions and Acronyms
 **Clover**: The name given to this software.  
-**Watched Metric**: A metric that has been determined to be of importance to the end user.  When this metric becomes anomalous, Clover will build a report and alert.
+**Trigger**: A metric that has been determined to be of importance to the end user.  When this metric becomes anomalous, Clover will build a report and alert.
 
 System Overview
 ----------
@@ -36,9 +36,9 @@ Clover consists of 3 services, but also relies on the existence of two other pie
 
 1. Example System: Standard setup of a web system architecture, consisting of servers, load balancers, and databases.
 2. Metric Extractors: Extract all available metrics from our example system, saving the data in a data store where Clover can access it.
-3. Metric Processing Service: Read in metrics and determine if each is normal or anomalous.  In the event that a watched metric is anomalous, invoke the alerting and report building services.
-4. Alerting Service: Alert the user that an anomaly was detected in the watched metric.  This service makes a call to the reporting service to build the report that will be sent to the user.
-5. Report Building Service: For a given watched metric anomaly, build a timeline of relevant anomalous metrics leading up to the watched metric anomaly.
+3. Metric Processing Service: Read in metrics and determine if each is normal or anomalous.  In the event that a trigger is anomalous, invoke the alerting and report building services.
+4. Alerting Service: Alert the user that an anomaly was detected in the trigger.  This service makes a call to the reporting service to build the report that will be sent to the user.
+5. Report Building Service: For a given trigger anomaly, build a timeline of relevant anomalous metrics leading up to the trigger anomaly.
 6. Actually send the alert to the user.
 
 System Architecture
@@ -47,7 +47,7 @@ System Architecture
 #### Example System
 In order to show the usefulness of Clover, we need a test system that we can monitor and into which we can inject failure.  This system exists outside of Clover and simulates a real-world architecture like would be seen in a common web application.
 
-The example system consists of a Nginx load balancer to direct traffic between 4 application servers.  Each application server makes a call to a MySQL Database, as well as to an Elasticsearch Cluster.  The data collected from these two data stores is returned to the user, and the response time of the request is our watched metric.
+The example system consists of a Nginx load balancer to direct traffic between 4 application servers.  Each application server makes call to a MySQL Database and/or an Elasticsearch Cluster depennding on the page requested.  The data collected from these two data stores is returned to the user, and the response time of the request is our trigger.
 
 ![Example System](https://raw.githubusercontent.com/truppert/clover/master/example-system.png)
 
@@ -79,13 +79,13 @@ When a metric becomes anomalous, it is simply noted as such in our data store.  
 
 #### Alerting Service Design
 
-We need to alert the user when our tracked metric becomes anomalous. The alerting service is designed to be sufficient, but minimal.  We will keep metadata on each alert in MySQL and track there if an alert remains open, or has been manually closed.  This prevents multiple alerts for a single anomaly.  (1) Every 10 seconds, we read current expected and actual values for each metric.  (2) If a metric is anomalous and (3) does not already have an open alert, (4) the report building service is called to build the report and the (5) the user is alerted via email with a link to the report.
+We need to alert the user when our tracked metric becomes anomalous. The alerting service is designed to be sufficient, but minimal.  We will keep metadata on each alert in MySQL and track there if an alert remains open, or has been manually closed.  This prevents multiple alerts for a single anomaly.  (1) Every 10 seconds, we read current expected and actual values for each metric.  (2) If a metric is anomalous and (3) does not already have an open alert, (4) the report building service is called to build the report and (5) the user is alerted via email with a link to the report.
 
 ![Alerting Service](https://raw.githubusercontent.com/truppert/clover/master/alerting-service.png)
 
 #### Report Building Service Design
 
-The final service needed is the report building service.  This service is called when our watched metric, response time, becomes anomalous.  We will call the time that this watched metric became anomalous our "report time," meaning the time the report became necessary.
+The final service needed is the report building service.  This service is called when our trigger (response time) becomes anomalous.  We will call the time that this trigger became anomalous our "report time," meaning the time the report became necessary.
 
 By the time this service is called, we have already collected and evaluated all the necessary metrics.  We have already determined what metrics have been anomalous, when they became such, and how long they remained so.  This allows us to build a report of the state of the system leading up to our report time.
 
