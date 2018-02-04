@@ -11,7 +11,7 @@ module TrafficSimulator
 
     1.step do |i|
       requestsPerSecond.times do |requestNum|
-        fork do
+        Thread.new do
           startTime = DateTime.now
           response = Net::HTTP.get_response('localhost', url)
           endTime = DateTime.now
@@ -26,12 +26,11 @@ module TrafficSimulator
             :server => response.body[/Host: ([a-f0-9]+)/,1]
           }
           puts output
+          STDOUT.flush
         end
       end
       sleep 1
     end
-
-    Process.waitall
 
   end
 
