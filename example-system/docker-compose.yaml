@@ -33,6 +33,15 @@ services:
     networks:
     - esnet
 
+  es_proxy:
+    image: nginx:1.13.7
+    volumes:
+    - ./nginx-es:/etc/nginx
+    ports:
+    - "9200:9200"
+    networks:
+    - esnet
+
   es_master_1:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
     container_name: es_master_1
@@ -49,8 +58,6 @@ services:
       memlock:
         soft: -1
         hard: -1
-    ports:
-    - 9200:9200
     networks:
     - esnet
 

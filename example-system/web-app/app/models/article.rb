@@ -29,7 +29,7 @@ class Article < ApplicationRecord
   document_type self.name.downcase
 
   Elasticsearch::Model.client = Elasticsearch::Client.new({
-    host: 'es_master_1'
+    host: 'es_proxy'
   })
 
   def self.search(query)
