@@ -29,11 +29,9 @@ module NYArchiveImporter
           :section => doc["section_name"],
           :type_of_material => doc["type_of_material"],
           :word_count => doc["word_count"].to_i
-          })
+        })
 
         article.save
-
-        # TODO : make sure this indexes to ES correctly too
 
       rescue => e
         puts "Exception: " + e.message

@@ -9,7 +9,6 @@ class ArticlesController < ApplicationController
 
   def search
     @query = params[:query]
-    # @articles = Article.limit(100)
     @articles = Article.search(@query).records.limit(100)
   end
 
