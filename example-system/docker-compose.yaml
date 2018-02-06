@@ -7,11 +7,14 @@ volumes:
   es_data_3: {}
   es_data_4: {}
   es_data_5: {}
+  influxdb_data: {}
+  grafana_data: {}
 
 networks:
   esnet:
   webapp:
   mysql:
+  metricnet:
 
 services:
 
@@ -218,4 +221,41 @@ services:
     ports:
     - "80:80"
     networks:
+    - webapp
+
+  influxdb:
+    image: influxdb:1.4
+    expose:
+    - "8086"
+    environment:
+    - INFLUXDB_DB=telegraf
+    volumes:
+    - influxdb_data:/var/lib/influxdb
+    networks:
+    - metricnet
+
+  grafana:
+    image: grafana/grafana
+    ports:
+    - 3005:3000
+    volumes:
+    - grafana_data:/var/lib/grafana
+    environment:
+    - GF_SECURITY_ADMIN_PASSWORD=foobar
+    - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+    - metricnet
+
+  telegraf:
+    image: telegraf:1.5
+    volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:ro
+    - /sys:/sys:ro
+    - /var/lib/docker:/var/lib/docker:ro
+    - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    networks:
+    - metricnet
+    - esnet
+    - mysql
     - webapp
