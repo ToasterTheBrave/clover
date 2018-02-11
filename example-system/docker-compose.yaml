@@ -213,6 +213,7 @@ services:
     - webapp
     - esnet
     - mysql
+    - metricnet
 
   proxy:
     image: nginx:1.13.7
