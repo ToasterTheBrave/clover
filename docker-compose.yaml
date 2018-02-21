@@ -1,4 +1,4 @@
-version: '2'
+version: '2.2'
 
 volumes:
   mysql_data: {}
@@ -11,10 +11,7 @@ volumes:
   grafana_data: {}
 
 networks:
-  esnet:
-  webapp:
-  mysql:
-  metricnet:
+  master_project:
 
 services:
 
@@ -23,27 +20,40 @@ services:
     volumes:
     - mysql_data:/var/lib/mysql
     environment:
-    - MYSQL_ROOT_PASSWORD=dHlsZXJ3YXNoZXJlCg
+    - MYSQL_ROOT_PASSWORD=root
     expose:
     - "3306"
     networks:
-    - mysql
+    - master_project
 
   es_head:
     image: mobz/elasticsearch-head:5
     ports:
     - 9100:9100
+    depends_on:
+    - es_master_1
     networks:
-    - esnet
+    - master_project
 
   es_proxy:
     image: nginx:1.13.7
     volumes:
-    - ./nginx-es:/etc/nginx
+    - /hosthome/truppert/projects/master-project/example-system/nginx-es:/etc/nginx
     ports:
     - "9200:9200"
+    expose:
+    - "9200"
+    depends_on:
+    - es_master_1
+    - es_master_2
+    - es_master_3
+    - es_data_1
+    - es_data_2
+    - es_data_3
+    - es_data_4
+    - es_data_5
     networks:
-    - esnet
+    - master_project
 
   es_master_1:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
@@ -52,7 +62,7 @@ services:
     - cluster.name=webapp-cluster
     - bootstrap.memory_lock=true
     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_2,es_master_3"
+    - "discovery.zen.ping.unicast.hosts=es_master_2"
     - "discovery.zen.minimum_master_nodes=2"
     - "node.master=true"
     - "node.data=false"
@@ -62,7 +72,7 @@ services:
         soft: -1
         hard: -1
     networks:
-    - esnet
+    - master_project
 
   es_master_2:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
@@ -71,7 +81,7 @@ services:
     - cluster.name=webapp-cluster
     - bootstrap.memory_lock=true
     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    - "discovery.zen.ping.unicast.hosts=es_master_1,es_master_3"
+    - "discovery.zen.ping.unicast.hosts=es_master_1"
     - "discovery.zen.minimum_master_nodes=2"
     - "node.master=true"
     - "node.data=false"
@@ -80,8 +90,10 @@ services:
       memlock:
         soft: -1
         hard: -1
+    depends_on:
+    - es_master_1
     networks:
-    - esnet
+    - master_project
 
   es_master_3:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
@@ -99,8 +111,10 @@ services:
       memlock:
         soft: -1
         hard: -1
+    depends_on:
+    - es_master_2
     networks:
-    - esnet
+    - master_project
 
   es_data_1:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
@@ -119,8 +133,10 @@ services:
       memlock:
         soft: -1
         hard: -1
+    depends_on:
+    - es_master_3
     networks:
-    - esnet
+    - master_project
 
   es_data_2:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
@@ -139,8 +155,10 @@ services:
       memlock:
         soft: -1
         hard: -1
+    depends_on:
+    - es_master_3
     networks:
-    - esnet
+    - master_project
 
   es_data_3:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
@@ -159,8 +177,10 @@ services:
       memlock:
         soft: -1
         hard: -1
+    depends_on:
+    - es_master_3
     networks:
-    - esnet
+    - master_project
 
   es_data_4:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
@@ -179,8 +199,10 @@ services:
       memlock:
         soft: -1
         hard: -1
+    depends_on:
+    - es_master_3
     networks:
-    - esnet
+    - master_project
 
   es_data_5:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
@@ -199,41 +221,47 @@ services:
       memlock:
         soft: -1
         hard: -1
+    depends_on:
+    - es_master_3
     networks:
-    - esnet
+    - master_project
 
   web_app:
-    build: ./web-app
+    build: ./example-system/web-app
     volumes:
-    - ./web-app:/app/web-app
-    links:
-    - "mysql:mysql"
-    command: "rails server --pid /tmp/server.pid"
-    networks:
-    - webapp
-    - esnet
+    - /hosthome/truppert/projects/master-project/example-system/web-app:/app/web-app
+    depends_on:
     - mysql
-    - metricnet
+    - es_proxy
+    - influxdb
+    command: "rails server --pid /tmp/server.pid"
+    scale: 5
+    networks:
+    - master_project
 
   proxy:
     image: nginx:1.13.7
     volumes:
-    - ./nginx:/etc/nginx
+    - /hosthome/truppert/projects/master-project/example-system/nginx:/etc/nginx
     ports:
     - "80:80"
+    depends_on:
+    - web_app
     networks:
-    - webapp
+    - master_project
 
   influxdb:
     image: influxdb:1.4
     expose:
     - "8086"
+    ports:
+    - 8086:8086
     environment:
     - INFLUXDB_DB=telegraf
     volumes:
     - influxdb_data:/var/lib/influxdb
     networks:
-    - metricnet
+    - master_project
 
   grafana:
     image: grafana/grafana
@@ -244,8 +272,10 @@ services:
     environment:
     - GF_SECURITY_ADMIN_PASSWORD=foobar
     - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+    - influxdb
     networks:
-    - metricnet
+    - master_project
 
   telegraf:
     image: telegraf:1.5
@@ -254,9 +284,53 @@ services:
     - /var/run:/var/run:ro
     - /sys:/sys:ro
     - /var/lib/docker:/var/lib/docker:ro
-    - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    networks:
-    - metricnet
-    - esnet
+    - /hosthome/truppert/projects/master-project/monitoring/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+    - influxdb
     - mysql
-    - webapp
+    - proxy
+    - es_proxy
+    - es_master_1
+    - es_master_2
+    - es_master_3
+    - es_data_1
+    - es_data_2
+    - es_data_3
+    - es_data_4
+    - es_data_5
+    networks:
+    - master_project
+
+  gremlins:
+    image: truppert/gremlins
+    environment:
+    - ENTROPY_PROBABILITY=.9
+    - ENTROPY_FREQUENCY=1
+    - ENTROPY_FAILURES=latency
+    privileged: true
+    volumes:
+    - /hosthome/truppert/projects/gremlins:/app
+    network_mode: "host"
+    command: "sleep 10000"
+
+  ts_list:
+    build: ./traffic-simulator
+    volumes:
+    - /hosthome/truppert/projects/master-project/traffic-simulator:/app/traffic-simulator
+    depends_on:
+    - proxy
+    - influxdb
+    networks:
+    - master_project
+    command: "ruby traffic-simulator.rb /articles 1"
+
+  ts_search:
+    build: ./traffic-simulator
+    volumes:
+    - /hosthome/truppert/projects/master-project/traffic-simulator:/app/traffic-simulator
+    depends_on:
+    - proxy
+    - influxdb
+    networks:
+    - master_project
+    command: "ruby traffic-simulator.rb /articles/search/russia 1"
