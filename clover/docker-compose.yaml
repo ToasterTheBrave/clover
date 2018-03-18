@@ -1,0 +1,44 @@
+version: '2.2'
+
+volumes:
+  mysql_data: {}
+  influxdb_data: {}
+  grafana_data: {}
+
+services:
+
+  mysql:
+    image: mysql:5.7
+    volumes:
+    - mysql_data:/var/lib/mysql
+    environment:
+    - MYSQL_ROOT_PASSWORD=root
+    expose:
+    - "3306"
+    ports:
+    - 3306:3306
+
+  influxdb:
+    image: influxdb:1.4
+    expose:
+    - "8086"
+    ports:
+    - 8086:8086
+    environment:
+    - INFLUXDB_DB=telegraf
+    volumes:
+    - influxdb_data:/var/lib/influxdb
+
+  grafana:
+    image: grafana/grafana
+    ports:
+    - 3005:3000
+    volumes:
+    - grafana_data:/var/lib/grafana
+    environment:
+    - GF_SECURITY_ADMIN_PASSWORD=foobar
+    - GF_USERS_ALLOW_SIGN_UP=false
+    links:
+    - influxdb:influxdb
+    depends_on:
+    - influxdb
