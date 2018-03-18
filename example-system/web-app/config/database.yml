@@ -20,7 +20,7 @@ default: &default
 
 development:
   <<: *default
-  host: mysql
+  host: 52.54.112.235
   port: 3306
   database: webapp_development
 

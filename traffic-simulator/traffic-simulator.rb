@@ -10,13 +10,13 @@ module TrafficSimulator
       exit 01
     end
 
-    influxdb = InfluxDB::Client.new "traffic_simulator", host: "influxdb", username: "root", password: "root"
+    influxdb = InfluxDB::Client.new "traffic_simulator", host: "52.54.112.235", username: "root", password: "root"
 
     1.step do |i|
       requestsPerSecond.times do |requestNum|
         Thread.new do
           startTime = DateTime.now
-          response = Net::HTTP.get_response('proxy', url)
+          response = Net::HTTP.get_response('52.54.112.235', url)
           endTime = DateTime.now
           output = {
             :iteration => i,
