@@ -1,0 +1,111 @@
+{
+  "executionRoleArn": null,
+  "containerDefinitions": [
+    {
+      "dnsSearchDomains": null,
+      "logConfiguration": null,
+      "entryPoint": null,
+      "portMappings": [],
+      "command": null,
+      "linuxParameters": null,
+      "cpu": 0,
+      "environment": [],
+      "ulimits": null,
+      "dnsServers": null,
+      "mountPoints": [
+        {
+          "readOnly": true,
+          "containerPath": "/rootfs",
+          "sourceVolume": "root"
+        },
+        {
+          "readOnly": true,
+          "containerPath": "/sys",
+          "sourceVolume": "sys"
+        },
+        {
+          "readOnly": true,
+          "containerPath": "/var/lib/docker",
+          "sourceVolume": "var-lib-docker"
+        },
+        {
+          "readOnly": true,
+          "containerPath": "/var/run",
+          "sourceVolume": "var-run"
+        }
+      ],
+      "workingDirectory": null,
+      "dockerSecurityOptions": null,
+      "memory": null,
+      "memoryReservation": 128,
+      "volumesFrom": [],
+      "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/telegraf-server-stats",
+      "disableNetworking": null,
+      "healthCheck": null,
+      "essential": true,
+      "links": null,
+      "hostname": null,
+      "extraHosts": null,
+      "user": null,
+      "readonlyRootFilesystem": null,
+      "dockerLabels": null,
+      "privileged": null,
+      "name": "telegraf-serveristats"
+    }
+  ],
+  "placementConstraints": [],
+  "memory": null,
+  "taskRoleArn": null,
+  "compatibilities": [
+    "EC2"
+  ],
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-telegraf-server-stats:1",
+  "family": "master-project-telegraf-server-stats",
+  "requiresAttributes": [
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.ecr-auth"
+    },
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+    }
+  ],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "networkMode": null,
+  "cpu": null,
+  "revision": 1,
+  "status": "ACTIVE",
+  "volumes": [
+    {
+      "name": "root",
+      "host": {
+        "sourcePath": "/"
+      }
+    },
+    {
+      "name": "var-run",
+      "host": {
+        "sourcePath": "/var/run"
+      }
+    },
+    {
+      "name": "sys",
+      "host": {
+        "sourcePath": "/sys"
+      }
+    },
+    {
+      "name": "var-lib-docker",
+      "host": {
+        "sourcePath": "/var/lib/docker"
+      }
+    }
+  ]
+}

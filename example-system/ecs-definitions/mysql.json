@@ -1,0 +1,121 @@
+{
+  "executionRoleArn": null,
+  "containerDefinitions": [
+    {
+      "dnsSearchDomains": null,
+      "logConfiguration": null,
+      "entryPoint": null,
+      "portMappings": [],
+      "command": null,
+      "linuxParameters": null,
+      "cpu": 0,
+      "environment": [],
+      "ulimits": null,
+      "dnsServers": null,
+      "mountPoints": [],
+      "workingDirectory": null,
+      "dockerSecurityOptions": null,
+      "memory": null,
+      "memoryReservation": 256,
+      "volumesFrom": [],
+      "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/telegraf-mysql",
+      "disableNetworking": null,
+      "healthCheck": null,
+      "essential": true,
+      "links": [
+        "mysql:mysql"
+      ],
+      "hostname": null,
+      "extraHosts": null,
+      "user": null,
+      "readonlyRootFilesystem": null,
+      "dockerLabels": null,
+      "privileged": null,
+      "name": "telegraf-mysql"
+    },
+    {
+      "dnsSearchDomains": null,
+      "logConfiguration": null,
+      "entryPoint": null,
+      "portMappings": [
+        {
+          "hostPort": 3306,
+          "protocol": "tcp",
+          "containerPort": 3306
+        }
+      ],
+      "command": null,
+      "linuxParameters": null,
+      "cpu": 0,
+      "environment": [
+        {
+          "name": "MYSQL_ROOT_PASSWORD",
+          "value": "root"
+        }
+      ],
+      "ulimits": null,
+      "dnsServers": null,
+      "mountPoints": [
+        {
+          "readOnly": null,
+          "containerPath": "/var/lib/mysql",
+          "sourceVolume": "mysql"
+        }
+      ],
+      "workingDirectory": null,
+      "dockerSecurityOptions": null,
+      "memory": null,
+      "memoryReservation": 512,
+      "volumesFrom": [],
+      "image": "mysql:5.7",
+      "disableNetworking": null,
+      "healthCheck": null,
+      "essential": true,
+      "links": null,
+      "hostname": null,
+      "extraHosts": null,
+      "user": null,
+      "readonlyRootFilesystem": null,
+      "dockerLabels": null,
+      "privileged": null,
+      "name": "mysql"
+    }
+  ],
+  "placementConstraints": [],
+  "memory": null,
+  "taskRoleArn": null,
+  "compatibilities": [
+    "EC2"
+  ],
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-mysql:2",
+  "family": "master-project-mysql",
+  "requiresAttributes": [
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.ecr-auth"
+    },
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+    }
+  ],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "networkMode": null,
+  "cpu": null,
+  "revision": 2,
+  "status": "ACTIVE",
+  "volumes": [
+    {
+      "name": "mysql",
+      "host": {
+        "sourcePath": "/mnt/docker-volumes/example-app/mysql"
+      }
+    }
+  ]
+}

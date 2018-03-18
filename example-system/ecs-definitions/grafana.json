@@ -1,0 +1,91 @@
+{
+  "executionRoleArn": null,
+  "containerDefinitions": [
+    {
+      "dnsSearchDomains": null,
+      "logConfiguration": null,
+      "entryPoint": null,
+      "portMappings": [
+        {
+          "hostPort": 3005,
+          "protocol": "tcp",
+          "containerPort": 3000
+        }
+      ],
+      "command": null,
+      "linuxParameters": null,
+      "cpu": 0,
+      "environment": [
+        {
+          "name": "GF_SECURITY_ADMIN_PASSWORD",
+          "value": "foobar"
+        },
+        {
+          "name": "GF_SECURITY_ADMIN_USER",
+          "value": "admin"
+        },
+        {
+          "name": "GF_USERS_ALLOW_SIGN_UP",
+          "value": "false"
+        }
+      ],
+      "ulimits": null,
+      "dnsServers": null,
+      "mountPoints": [
+        {
+          "readOnly": null,
+          "containerPath": "/var/lib/grafana",
+          "sourceVolume": "grafana"
+        }
+      ],
+      "workingDirectory": null,
+      "dockerSecurityOptions": null,
+      "memory": null,
+      "memoryReservation": 128,
+      "volumesFrom": [],
+      "image": "grafana/grafana",
+      "disableNetworking": null,
+      "healthCheck": null,
+      "essential": true,
+      "links": null,
+      "hostname": null,
+      "extraHosts": null,
+      "user": null,
+      "readonlyRootFilesystem": null,
+      "dockerLabels": null,
+      "privileged": null,
+      "name": "grafana"
+    }
+  ],
+  "placementConstraints": [],
+  "memory": null,
+  "taskRoleArn": null,
+  "compatibilities": [
+    "EC2"
+  ],
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-grafana:3",
+  "family": "master-project-grafana",
+  "requiresAttributes": [
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+    }
+  ],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "networkMode": null,
+  "cpu": null,
+  "revision": 3,
+  "status": "ACTIVE",
+  "volumes": [
+    {
+      "name": "grafana",
+      "host": {
+        "sourcePath": "/mnt/docker-volumes/example-app/grafana"
+      }
+    }
+  ]
+}
