@@ -49,3 +49,5 @@ project/plugins/project/
 #### Clover ####
 data
 .scratch
+src/test/scala/playground
+
