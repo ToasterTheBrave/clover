@@ -36,8 +36,8 @@
       ],
       "workingDirectory": null,
       "dockerSecurityOptions": null,
-      "memory": null,
-      "memoryReservation": 128,
+      "memory": 256,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/telegraf-server-stats",
       "disableNetworking": null,
@@ -50,16 +50,21 @@
       "readonlyRootFilesystem": null,
       "dockerLabels": null,
       "privileged": null,
-      "name": "telegraf-serveristats"
+      "name": "telegraf-serverstats"
     }
   ],
-  "placementConstraints": [],
+  "placementConstraints": [
+    {
+      "type": "memberOf",
+      "expression": "attribute:stack =~ example-app"
+    }
+  ],
   "memory": null,
   "taskRoleArn": null,
   "compatibilities": [
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-telegraf-server-stats:1",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-telegraf-server-stats:3",
   "family": "master-project-telegraf-server-stats",
   "requiresAttributes": [
     {
@@ -67,12 +72,6 @@
       "targetType": null,
       "value": null,
       "name": "com.amazonaws.ecs.capability.ecr-auth"
-    },
-    {
-      "targetId": null,
-      "targetType": null,
-      "value": null,
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
     }
   ],
   "requiresCompatibilities": [
@@ -80,7 +79,7 @@
   ],
   "networkMode": null,
   "cpu": null,
-  "revision": 1,
+  "revision": 3,
   "status": "ACTIVE",
   "volumes": [
     {

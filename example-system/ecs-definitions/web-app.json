@@ -16,7 +16,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/web-app",
       "disableNetworking": null,
@@ -46,7 +46,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/web-app",
       "disableNetworking": null,
@@ -76,7 +76,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/web-app",
       "disableNetworking": null,
@@ -106,7 +106,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/web-app",
       "disableNetworking": null,
@@ -136,7 +136,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/web-app",
       "disableNetworking": null,
@@ -172,7 +172,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/example-system/nginx",
       "disableNetworking": null,
@@ -208,7 +208,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/telegraf-web-app",
       "disableNetworking": null,
@@ -226,13 +226,18 @@
       "name": "telegraf-webapp"
     }
   ],
-  "placementConstraints": [],
-  "memory": null,
+  "placementConstraints": [
+    {
+      "type": "memberOf",
+      "expression": "attribute:stack =~ example-app"
+    }
+  ],
+  "memory": "1792",
   "taskRoleArn": null,
   "compatibilities": [
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/masters-project-web-app:5",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/masters-project-web-app:8",
   "family": "masters-project-web-app",
   "requiresAttributes": [
     {
@@ -240,12 +245,6 @@
       "targetType": null,
       "value": null,
       "name": "com.amazonaws.ecs.capability.ecr-auth"
-    },
-    {
-      "targetId": null,
-      "targetType": null,
-      "value": null,
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
     }
   ],
   "requiresCompatibilities": [
@@ -253,7 +252,7 @@
   ],
   "networkMode": null,
   "cpu": null,
-  "revision": 5,
+  "revision": 8,
   "status": "ACTIVE",
   "volumes": []
 }

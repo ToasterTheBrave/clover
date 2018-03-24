@@ -51,7 +51,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 600,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/elasticsearch",
       "disableNetworking": null,
@@ -116,7 +116,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 600,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/elasticsearch",
       "disableNetworking": null,
@@ -154,7 +154,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 256,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/nginx-es",
       "disableNetworking": null,
@@ -227,7 +227,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 600,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/elasticsearch",
       "disableNetworking": null,
@@ -305,7 +305,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 600,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/elasticsearch",
       "disableNetworking": null,
@@ -332,164 +332,6 @@
       "command": null,
       "linuxParameters": null,
       "cpu": 0,
-      "environment": [
-        {
-          "name": "bootstrap.memory_lock",
-          "value": "true"
-        },
-        {
-          "name": "cluster.name",
-          "value": "webapp-cluster"
-        },
-        {
-          "name": "discovery.zen.minimum_master_nodes",
-          "value": "2"
-        },
-        {
-          "name": "discovery.zen.ping.unicast.hosts",
-          "value": "es_master_1,es_master_2,es_master_3"
-        },
-        {
-          "name": "ES_JAVA_OPTS",
-          "value": "-Xms512m -Xmx512m"
-        },
-        {
-          "name": "node.data",
-          "value": "true"
-        },
-        {
-          "name": "node.master",
-          "value": "false"
-        },
-        {
-          "name": "node.name",
-          "value": "es_data_2"
-        }
-      ],
-      "ulimits": [
-        {
-          "name": "memlock",
-          "softLimit": -1,
-          "hardLimit": -1
-        }
-      ],
-      "dnsServers": null,
-      "mountPoints": [
-        {
-          "readOnly": null,
-          "containerPath": "/usr/share/elasticsearch/data",
-          "sourceVolume": "es_data_2"
-        }
-      ],
-      "workingDirectory": null,
-      "dockerSecurityOptions": null,
-      "memory": null,
-      "memoryReservation": 600,
-      "volumesFrom": [],
-      "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/elasticsearch",
-      "disableNetworking": null,
-      "healthCheck": null,
-      "essential": false,
-      "links": [
-        "es_master_1:es_master_1",
-        "es_master_2:es_master_2",
-        "es_master_3:es_master_3"
-      ],
-      "hostname": null,
-      "extraHosts": null,
-      "user": null,
-      "readonlyRootFilesystem": null,
-      "dockerLabels": null,
-      "privileged": null,
-      "name": "es_data_2"
-    },
-    {
-      "dnsSearchDomains": null,
-      "logConfiguration": null,
-      "entryPoint": null,
-      "portMappings": [],
-      "command": null,
-      "linuxParameters": null,
-      "cpu": 0,
-      "environment": [
-        {
-          "name": "bootstrap.memory_lock",
-          "value": "true"
-        },
-        {
-          "name": "cluster.name",
-          "value": "webapp-cluster"
-        },
-        {
-          "name": "discovery.zen.minimum_master_nodes",
-          "value": "2"
-        },
-        {
-          "name": "discovery.zen.ping.unicast.hosts",
-          "value": "es_master_1,es_master_2,es_master_3"
-        },
-        {
-          "name": "ES_JAVA_OPTS",
-          "value": "-Xms512m -Xmx512m"
-        },
-        {
-          "name": "node.data",
-          "value": "true"
-        },
-        {
-          "name": "node.master",
-          "value": "false"
-        },
-        {
-          "name": "node.name",
-          "value": "es_data_3"
-        }
-      ],
-      "ulimits": [
-        {
-          "name": "memlock",
-          "softLimit": -1,
-          "hardLimit": -1
-        }
-      ],
-      "dnsServers": null,
-      "mountPoints": [
-        {
-          "readOnly": null,
-          "containerPath": "/usr/share/elasticsearch/data",
-          "sourceVolume": "es_data_3"
-        }
-      ],
-      "workingDirectory": null,
-      "dockerSecurityOptions": null,
-      "memory": null,
-      "memoryReservation": 600,
-      "volumesFrom": [],
-      "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/elasticsearch",
-      "disableNetworking": null,
-      "healthCheck": null,
-      "essential": false,
-      "links": [
-        "es_master_1:es_master_1",
-        "es_master_2:es_master_2",
-        "es_master_3:es_master_3"
-      ],
-      "hostname": null,
-      "extraHosts": null,
-      "user": null,
-      "readonlyRootFilesystem": null,
-      "dockerLabels": null,
-      "privileged": null,
-      "name": "es_data_3"
-    },
-    {
-      "dnsSearchDomains": null,
-      "logConfiguration": null,
-      "entryPoint": null,
-      "portMappings": [],
-      "command": null,
-      "linuxParameters": null,
-      "cpu": 0,
       "environment": [],
       "ulimits": null,
       "dnsServers": null,
@@ -497,7 +339,7 @@
       "workingDirectory": null,
       "dockerSecurityOptions": null,
       "memory": null,
-      "memoryReservation": 256,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/telegraf-elasticsearch",
       "disableNetworking": null,
@@ -508,9 +350,7 @@
         "es_master_1:es_master_1",
         "es_master_2:es_master_2",
         "es_master_3:es_master_3",
-        "es_data_1:es_data_1",
-        "es_data_2:es_data_2",
-        "es_data_3:es_data_3"
+        "es_data_1:es_data_1"
       ],
       "hostname": null,
       "extraHosts": null,
@@ -521,13 +361,18 @@
       "name": "telegraf-elasticsearch"
     }
   ],
-  "placementConstraints": [],
-  "memory": null,
+  "placementConstraints": [
+    {
+      "type": "memberOf",
+      "expression": "attribute:stack =~ example-app"
+    }
+  ],
+  "memory": "4096",
   "taskRoleArn": null,
   "compatibilities": [
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-es:1",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-es:8",
   "family": "master-project-es",
   "requiresAttributes": [
     {
@@ -541,12 +386,6 @@
       "targetType": null,
       "value": null,
       "name": "com.amazonaws.ecs.capability.ecr-auth"
-    },
-    {
-      "targetId": null,
-      "targetType": null,
-      "value": null,
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
     }
   ],
   "requiresCompatibilities": [
@@ -554,7 +393,7 @@
   ],
   "networkMode": null,
   "cpu": null,
-  "revision": 1,
+  "revision": 8,
   "status": "ACTIVE",
   "volumes": [
     {

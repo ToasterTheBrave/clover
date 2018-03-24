@@ -20,8 +20,8 @@
       "mountPoints": [],
       "workingDirectory": null,
       "dockerSecurityOptions": null,
-      "memory": null,
-      "memoryReservation": 128,
+      "memory": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/traffic-simulator",
       "disableNetworking": null,
@@ -55,8 +55,8 @@
       "mountPoints": [],
       "workingDirectory": null,
       "dockerSecurityOptions": null,
-      "memory": null,
-      "memoryReservation": 123,
+      "memory": 128,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/traffic-simulator",
       "disableNetworking": null,
@@ -72,13 +72,18 @@
       "name": "ts-search"
     }
   ],
-  "placementConstraints": [],
+  "placementConstraints": [
+    {
+      "type": "memberOf",
+      "expression": "attribute:stack =~ example-addons"
+    }
+  ],
   "memory": null,
   "taskRoleArn": null,
   "compatibilities": [
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-traffic-simulator:7",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-traffic-simulator:9",
   "family": "master-project-traffic-simulator",
   "requiresAttributes": [
     {
@@ -86,12 +91,6 @@
       "targetType": null,
       "value": null,
       "name": "com.amazonaws.ecs.capability.ecr-auth"
-    },
-    {
-      "targetId": null,
-      "targetType": null,
-      "value": null,
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
     }
   ],
   "requiresCompatibilities": [
@@ -99,7 +98,7 @@
   ],
   "networkMode": null,
   "cpu": null,
-  "revision": 7,
+  "revision": 9,
   "status": "ACTIVE",
   "volumes": []
 }

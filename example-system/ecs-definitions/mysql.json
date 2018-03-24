@@ -15,8 +15,8 @@
       "mountPoints": [],
       "workingDirectory": null,
       "dockerSecurityOptions": null,
-      "memory": null,
-      "memoryReservation": 256,
+      "memory": 256,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "188178152637.dkr.ecr.us-east-1.amazonaws.com/master-project/telegraf-mysql",
       "disableNetworking": null,
@@ -64,8 +64,8 @@
       ],
       "workingDirectory": null,
       "dockerSecurityOptions": null,
-      "memory": null,
-      "memoryReservation": 512,
+      "memory": 512,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "mysql:5.7",
       "disableNetworking": null,
@@ -81,13 +81,18 @@
       "name": "mysql"
     }
   ],
-  "placementConstraints": [],
+  "placementConstraints": [
+    {
+      "type": "memberOf",
+      "expression": "attribute:stack =~ example-app"
+    }
+  ],
   "memory": null,
   "taskRoleArn": null,
   "compatibilities": [
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-mysql:2",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-mysql:4",
   "family": "master-project-mysql",
   "requiresAttributes": [
     {
@@ -95,12 +100,6 @@
       "targetType": null,
       "value": null,
       "name": "com.amazonaws.ecs.capability.ecr-auth"
-    },
-    {
-      "targetId": null,
-      "targetType": null,
-      "value": null,
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
     }
   ],
   "requiresCompatibilities": [
@@ -108,7 +107,7 @@
   ],
   "networkMode": null,
   "cpu": null,
-  "revision": 2,
+  "revision": 4,
   "status": "ACTIVE",
   "volumes": [
     {

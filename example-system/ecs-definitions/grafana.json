@@ -40,8 +40,8 @@
       ],
       "workingDirectory": null,
       "dockerSecurityOptions": null,
-      "memory": null,
-      "memoryReservation": 128,
+      "memory": 256,
+      "memoryReservation": null,
       "volumesFrom": [],
       "image": "grafana/grafana",
       "disableNetworking": null,
@@ -57,28 +57,26 @@
       "name": "grafana"
     }
   ],
-  "placementConstraints": [],
+  "placementConstraints": [
+    {
+      "type": "memberOf",
+      "expression": "attribute:stack =~ example-addons"
+    }
+  ],
   "memory": null,
   "taskRoleArn": null,
   "compatibilities": [
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-grafana:3",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:188178152637:task-definition/master-project-grafana:5",
   "family": "master-project-grafana",
-  "requiresAttributes": [
-    {
-      "targetId": null,
-      "targetType": null,
-      "value": null,
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
-    }
-  ],
+  "requiresAttributes": [],
   "requiresCompatibilities": [
     "EC2"
   ],
   "networkMode": null,
   "cpu": null,
-  "revision": 3,
+  "revision": 5,
   "status": "ACTIVE",
   "volumes": [
     {

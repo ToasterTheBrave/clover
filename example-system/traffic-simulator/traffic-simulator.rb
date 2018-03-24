@@ -10,7 +10,7 @@ module TrafficSimulator
       exit 01
     end
 
-    influxdb = InfluxDB::Client.new "traffic_simulator", host: "52.54.112.235", username: "root", password: "root"
+    influxdb = InfluxDB::Client.new "traffic_simulator", host: "18.233.132.222", username: "root", password: "root"
 
     1.step do |i|
       requestsPerSecond.times do |requestNum|
