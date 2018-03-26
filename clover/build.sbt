@@ -1,16 +1,26 @@
-name := "clover"
+lazy val root = (project in file("."))
+  .settings(
+    name := "clover",
+    version := "0.1",
+    scalaVersion := "2.11.11"
+  )
 
-version := "0.1"
+libraryDependencies ++= Seq(
+  "org.apache.spark" %% "spark-sql" % "2.2.1",
 
-scalaVersion := "2.11.11"
+  "org.apache.spark" %% "spark-mllib" % "2.2.1",
 
-libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.2.1"
-libraryDependencies += "org.apache.spark" %% "spark-mllib" % "2.2.1"
+  "mysql" % "mysql-connector-java" % "5.1.24",
 
-libraryDependencies += "com.paulgoldbaum" %% "scala-influxdb-client" % "0.5.2"
-libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.24"
+  "org.mockito" % "mockito-core" % "2.16.0" % "test",
 
-libraryDependencies += "org.mockito" % "mockito-core" % "2.16.0"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.4" % "test"
+
+)
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
 
 logBuffered in Test := false

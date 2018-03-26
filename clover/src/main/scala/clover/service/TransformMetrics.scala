@@ -1,11 +1,11 @@
 package clover.service
 
-import clover.transformers.Transformer
+import clover.transformers.{LinearRegressionTransformer, Transformer}
 import clover._
 import org.apache.spark.sql.functions.desc
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-class TransformMetrics {
+object TransformMetrics {
 
   val sparkSession:SparkSession = SparkSession
     .builder()
@@ -17,6 +17,10 @@ class TransformMetrics {
 
   val metricSources:List[MetricSource] = Config.metricSources()
   val cloverStore = Config.cloverStore()
+
+  def main(args: Array[String]) {
+    run(List(new LinearRegressionTransformer(sparkSession)))
+  }
 
   def run(transformers: List[Transformer]): Unit = {
     while(true) {
