@@ -8,17 +8,16 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.collection.breakOut
 
-class InfluxDB(host: String = "", port: Integer = 8086, database: String) {
+class InfluxDBStore(host: String = "", port: Integer = 8086, database: String) {
 
-  var influxdb:com.paulgoldbaum.influxdbclient.InfluxDB = _
+  var influxdb:InfluxDB = _
   var db: Database = _
 
-  def connect(): InfluxDB = {
-    influxdb = com.paulgoldbaum.influxdbclient.InfluxDB.connect(host, port)
+  def connect(): InfluxDBStore = {
+    influxdb = InfluxDB.connect(host, port)
     db = influxdb.selectDatabase(database)
     this
   }
-
 
   def resultAsMap(result: QueryResult): List[Map[String, Any]] = {
     if(result.series.nonEmpty) {

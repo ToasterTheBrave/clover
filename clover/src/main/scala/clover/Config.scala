@@ -1,19 +1,19 @@
 package clover
 
-import clover.datastores.InfluxDB
+import clover.datastores.InfluxDBStore
 
 object Config {
 
   def metricSources(): List[MetricSource] = {
     List(
       MetricSource(
-        new InfluxDB("18.233.132.222", 8086, "traffic_simulator").connect(),
+        new InfluxDBStore("18.233.132.222", 8086, "traffic_simulator").connect(),
         List(
           Measurement("requests", "durationInMillis")
         )
       ),
       MetricSource(
-        new InfluxDB("18.233.132.222", 8086, "telegraf").connect(),
+        new InfluxDBStore("18.233.132.222", 8086, "telegraf").connect(),
         List(
           Measurement("cpu", "usage_guest"),
           Measurement("cpu", "usage_guest_nice"),
@@ -31,8 +31,8 @@ object Config {
     )
   }
 
-  def cloverStore(): InfluxDB = {
-    new InfluxDB("localhost", 8086, "clover").connect()
+  def cloverStore(): InfluxDBStore = {
+    new InfluxDBStore("localhost", 8086, "clover").connect()
   }
 
 }

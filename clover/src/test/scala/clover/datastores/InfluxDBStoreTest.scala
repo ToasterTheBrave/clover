@@ -5,9 +5,9 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
 
-class InfluxDBTest extends FunSuite with BeforeAndAfter with MockitoSugar {
+class InfluxDBStoreTest extends FunSuite with BeforeAndAfter with MockitoSugar {
 
-  val influxDB:InfluxDB = new InfluxDB("localhost", 8086, "clover_test")
+  val influxDB:InfluxDBStore = new InfluxDBStore("localhost", 8086, "clover_test")
 
   test("resultAsMap - list of maps when non-empty result") {
     val record1 = mock[Record]

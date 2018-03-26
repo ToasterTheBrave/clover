@@ -3,7 +3,7 @@ package clover.datastores
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 class influxDBIntegrationTest extends FunSuite with BeforeAndAfter {
-  val influxDB:InfluxDB = new InfluxDB("localhost", 8086, "clover_test").connect()
+  val influxDB:InfluxDBStore = new InfluxDBStore("localhost", 8086, "clover_test").connect()
 
   before {
     val inputData = List(
