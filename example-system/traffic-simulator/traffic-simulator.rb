@@ -19,8 +19,6 @@ module TrafficSimulator
           response = Net::HTTP.get_response(ENV["WEBAPP_HOST"], url)
           endTime = DateTime.now
           output = {
-            :iteration => i,
-            :requestNum => requestNum + 1,
             :url => url,
             :durationInMillis => (endTime.strftime('%Q').to_i - startTime.strftime('%Q').to_i),
             :code => response.code,
@@ -36,13 +34,9 @@ module TrafficSimulator
           }
           tags = {
             :server => response.body[/Host: ([a-f0-9]+)/,1],
-            :message => response.message,
-            :code => response.code,
-            :url => url,
-            :iteration => i,
-            :requestNum => requestNum + 1
+            :url => url
           }
-          influxdb.write_point("requests", {values: values, tags: tags})
+          influxdb.write_point("requests", {values: values, tags: tags}) unless tags[:server].nil?
           puts output
           STDOUT.flush
         end
