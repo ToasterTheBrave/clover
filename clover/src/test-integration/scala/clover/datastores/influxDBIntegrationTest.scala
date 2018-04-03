@@ -1,75 +1,84 @@
 package clover.datastores
 
-import org.scalatest.{BeforeAndAfter, FunSuite}
+import org.scalatest.{BeforeAndAfterEach, FunSuite}
 
-class influxDBIntegrationTest extends FunSuite with BeforeAndAfter {
-  val influxDB:InfluxDBStore = new InfluxDBStore("localhost", 8086, "clover_test").connect()
+class influxDBIntegrationTest extends FunSuite with BeforeAndAfterEach {
+  val influxDB:InfluxDBStore = new InfluxDBStore("localhost", 8086).connect().setDB("clover_test")
 
-  before {
+  override def beforeEach() {
     val inputData = List(
       ("2017-12-04T12:03:01Z", Map(
-        "value1" -> 1.toLong,
-        "value2" -> 2.toLong,
-        "value3" -> 3.toLong,
-        "value4" -> 4.toLong,
-        "value5" -> 5.toLong
+        "value1" -> 1L,
+        "value2" -> 2L,
+        "value3" -> 3L,
+        "value4" -> 4.5,
+        "value5" -> 5
       )),
       ("2017-12-04T12:03:02Z", Map(
-        "value1" -> 1.toLong,
-        "value2" -> 2.toLong,
-        "value3" -> 3.toLong,
-        "value4" -> 4.toLong,
-        "value5" -> 5.toLong
+        "value1" -> 1L,
+        "value2" -> 2L,
+        "value3" -> 3L,
+        "value4" -> 4.5,
+        "value5" -> 5
       )),
       ("2017-12-04T12:03:03Z", Map(
-        "value1" -> 1.toLong,
-        "value2" -> 2.toLong,
-        "value3" -> 3.toLong,
-        "value4" -> 4.toLong,
-        "value5" -> 5.toLong
+        "value1" -> 1L,
+        "value2" -> 2L,
+        "value3" -> 3L,
+        "value4" -> 4.5,
+        "value5" -> 5
       )),
       ("2017-12-04T12:03:04Z", Map(
-        "value1" -> 1.toLong,
-        "value2" -> 2.toLong,
-        "value3" -> 3.toLong,
-        "value4" -> 4.toLong,
-        "value5" -> 5.toLong
+        "value1" -> 1L,
+        "value2" -> 2L,
+        "value3" -> 3L,
+        "value4" -> 4.5,
+        "value5" -> 5
       )),
       ("2017-12-04T12:03:05Z", Map(
-        "value1" -> 1.toLong,
-        "value2" -> 2.toLong,
-        "value3" -> 3.toLong,
-        "value4" -> 4.toLong,
-        "value5" -> 5.toLong
+        "value1" -> 1L,
+        "value2" -> 2L,
+        "value3" -> 3L,
+        "value4" -> 4.5,
+        "value5" -> 5
       ))
     )
-    influxDB.write("test_table", "test_metric_1", "test_value_field", inputData)
+    influxDB.write(
+      "test_measurement_1",
+      Map(
+        "partition_key_1" -> "partition_value_1",
+        "partition_key_2" -> "partition_value_2"),
+      inputData)
   }
 
-  after {
-    influxDB.deleteTable("test_table")
+  override def afterEach() {
+    influxDB.deleteTable("test_measurement_1")
   }
 
   test("getLastProcessedTime") {
     // gets time from last metric when exists
-    assert(influxDB.getLastProcessedTime("test_table", "test_metric_1") == "2017-12-04T12:03:05Z")
+    assert(influxDB.getLastProcessedTime("test_measurement_1") == "2017-12-04T12:03:05Z")
 
     // defaults to epoch when metric doesn't exist
-    assert(influxDB.getLastProcessedTime("test_table", "test_metric_nonexistent") == "1970-01-01T00:00:00Z")
+    assert(influxDB.getLastProcessedTime("test_measurement_nonexistent") == "1970-01-01T00:00:00Z")
   }
 
   test("getSince") {
     // gets a value since a timestamp
     assert(
-      influxDB.getSince("test_table", "value1", "2017-12-04T12:03:03Z")
+      influxDB.getSince("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", "2017-12-04T12:03:03Z")
       ==
       List(
         Map(
           "time" -> "2017-12-04T12:03:04Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
           "value1" -> 1
         ),
         Map(
           "time" -> "2017-12-04T12:03:05Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
           "value1" -> 1
         )
       )
@@ -79,15 +88,19 @@ class influxDBIntegrationTest extends FunSuite with BeforeAndAfter {
   test("getRecent") {
     // Gets i most recent values
     assert(
-      influxDB.getRecent("test_table", "value1", 2)
+      influxDB.getRecent("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", 2)
       ==
       List(
         Map(
           "time" -> "2017-12-04T12:03:05Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
           "value1" -> 1
         ),
         Map(
           "time" -> "2017-12-04T12:03:04Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
           "value1" -> 1
         )
       )
@@ -96,11 +109,13 @@ class influxDBIntegrationTest extends FunSuite with BeforeAndAfter {
 
   test("write") {
     assert(
-      influxDB.getRecent("test_table", "value1", 1)
+      influxDB.getRecent("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", 1)
       ==
       List(
         Map(
           "time" -> "2017-12-04T12:03:05Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
           "value1" -> 1
         )
       )
@@ -108,43 +123,78 @@ class influxDBIntegrationTest extends FunSuite with BeforeAndAfter {
 
     val inputData = List(
       ("2017-12-04T12:03:06Z", Map(
-        "value1" -> 6.toLong,
-        "value2" -> 7.toLong,
-        "value3" -> 8.toLong,
-        "value4" -> 9.toLong,
-        "value5" -> 1.toLong
+        "value1" -> 6L,
+        "value2" -> 7L,
+        "value3" -> 8L,
+        "value4" -> 9.5,
+        "value5" -> 1
       ))
     )
 
-    val result = influxDB.write("test_table", "test_metric_1", "test_value_field", inputData)
+    val result = influxDB.write(
+      "test_measurement_1",
+      Map(
+        "partition_key_1" -> "partition_value_1",
+        "partition_key_2" -> "partition_value_2"
+      ),
+      inputData)
     assert(result == true)
     assert(
-      influxDB.getRecent("test_table", "value1", 1)
+      influxDB.getRecent("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", 1)
         ==
         List(
           Map(
             "time" -> "2017-12-04T12:03:06Z",
+            "partition_key_1" -> "partition_value_1",
+            "partition_key_2" -> "partition_value_2",
             "value1" -> 6
           )
         )
     )
+    assert(
+      influxDB.getRecent("test_measurement_1", List("partition_key_1", "partition_key_2"), "value4", 1)
+        ==
+        List(
+          Map(
+            "time" -> "2017-12-04T12:03:06Z",
+            "partition_key_1" -> "partition_value_1",
+            "partition_key_2" -> "partition_value_2",
+            "value4" -> 9.5
+          )
+        )
+    )
+    assert(
+      influxDB.getRecent("test_measurement_1", List("partition_key_1", "partition_key_2"), "value5", 1)
+        ==
+        List(
+          Map(
+            "time" -> "2017-12-04T12:03:06Z",
+            "partition_key_1" -> "partition_value_1",
+            "partition_key_2" -> "partition_value_2",
+            "value5" -> 1
+          )
+        )
+    )
+
   }
 
   test("deleteTable") {
     assert(
-      influxDB.getRecent("test_table", "value1", 1)
+      influxDB.getRecent("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", 1)
         ==
         List(
           Map(
             "time" -> "2017-12-04T12:03:05Z",
+            "partition_key_1" -> "partition_value_1",
+            "partition_key_2" -> "partition_value_2",
             "value1" -> 1
           )
         )
     )
 
-    influxDB.deleteTable("test_table")
+    influxDB.deleteTable("test_measurement_1")
 
-    assert(influxDB.getRecent("test_table", "value1", 1) == List())
+    assert(influxDB.getRecent("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", 1) == List())
   }
 
 }

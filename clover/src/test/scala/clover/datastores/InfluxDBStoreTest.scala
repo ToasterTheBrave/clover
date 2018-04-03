@@ -7,7 +7,7 @@ import org.mockito.Mockito._
 
 class InfluxDBStoreTest extends FunSuite with BeforeAndAfter with MockitoSugar {
 
-  val influxDB:InfluxDBStore = new InfluxDBStore("localhost", 8086, "clover_test")
+  val influxDB:InfluxDBStore = new InfluxDBStore("localhost", 8086)
 
   test("resultAsMap - list of maps when non-empty result") {
     val record1 = mock[Record]

@@ -1,2 +1,3 @@
 
-create database clover;
+create database clover_test;
+create database linear_regression_transformed;

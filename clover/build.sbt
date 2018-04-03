@@ -24,3 +24,4 @@ assemblyMergeStrategy in assembly := {
 }
 
 logBuffered in Test := false
+

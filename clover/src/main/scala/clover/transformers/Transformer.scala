@@ -1,8 +1,9 @@
 package clover.transformers
 
+import clover.Measurement
 import org.apache.spark.sql.DataFrame
 
 trait Transformer {
-  def tableName(): String
-  def transform(df: DataFrame, lastProcessedTime: String): DataFrame
+  def databaseName(): String
+  def transform(df: DataFrame, measurement: Measurement, lastProcessedTime: String): DataFrame
 }

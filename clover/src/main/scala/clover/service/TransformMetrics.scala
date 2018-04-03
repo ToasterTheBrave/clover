@@ -2,8 +2,10 @@ package clover.service
 
 import clover.transformers.{LinearRegressionTransformer, Transformer}
 import clover._
+import clover.datastores.InfluxDBStore
 import org.apache.spark.sql.functions.desc
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 object TransformMetrics {
 
@@ -26,77 +28,101 @@ object TransformMetrics {
     while(true) {
       metricSources.foreach(metricSource => {
         metricSource.measurements.foreach(measurement => {
-          var metricsDF = getInitialMetrics(metricSource, measurement)
-            metricsDF = reloadMetrics(metricSource, measurement, metricsDF)
-            runTransformers(transformers, measurement, metricsDF)
+          println("Running transformers on " + measurement.name + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
+          var measurementsDF = getInitialMeasurements(metricSource.database, measurement, 10000)
+          measurementsDF = reloadMeasurements(metricSource.database, measurement, measurementsDF, 2000)
+          runTransformers(transformers, measurement, measurementsDF)
         })
       })
-      Thread.sleep(1000)
     }
   }
 
   def runTransformers(transformers: List[Transformer], measurement: Measurement, metricsDF: DataFrame): Unit = {
     transformers.foreach(transformer => {
-      val lastProcessedTime = cloverStore.getLastProcessedTime(transformer.tableName(), measurement.name)
-      val transformedMetrics = transformer.transform(metricsDF, lastProcessedTime)
-      writeTransformations(transformer, measurement, transformedMetrics)
+      val transformerDataStore = cloverStore.setDB(transformer.databaseName())
+      val lastProcessedTime = transformerDataStore.getLastProcessedTime(measurement.name)
+      val transformedMetrics = transformer.transform(metricsDF, measurement, lastProcessedTime)
+      writeTransformations(transformerDataStore, transformer, measurement, transformedMetrics)
     })
   }
 
-  def getInitialMetrics(metricSource: MetricSource, measurement: Measurement): DataFrame = {
-    metricSource.database
-      .getRecent(measurement.name, measurement.valueField, 10000)
-      .map(x => {
-        val timeString = x.getOrElse("time", "").asInstanceOf[String]
-        val value = x.getOrElse(measurement.valueField, 0).asInstanceOf[BigDecimal]
-        Metric(Util.timeStringToLong(timeString), value)
-    }).toDF()
+  def convertMeasurementsToDF(measurement: Measurement, data: List[Map[String, Any]]): DataFrame = {
+    val columns = List("time") ++ measurement.partitions ++ List(measurement.valueField)
+    val schema = columns.map(x => {
+      x match {
+        case "time" => StructField(x, LongType)
+        case measurement.valueField => StructField(x, DoubleType)
+        case _ => StructField(x, StringType)
+      }
+    })
+
+    val rows = data.map(x => {
+      val partitionValues = measurement.partitions.map(partition => {
+        x.getOrElse(partition, "").asInstanceOf[String]
+      })
+
+      val time = Util.timeStringToLong(x.getOrElse("time", "").asInstanceOf[String])
+      val valueField = x.getOrElse(measurement.valueField, 0).asInstanceOf[BigDecimal].doubleValue
+
+      val mergedList = List(time) ++ partitionValues ++ List(valueField)
+      val row = Row(mergedList: _*)
+
+      row
+    })
+
+    sparkSession.createDataFrame(sparkSession.sparkContext.parallelize(rows), StructType(schema))
   }
 
-  def reloadMetrics(metricSource: MetricSource, measurement: Measurement, df: DataFrame): DataFrame = {
+  def getInitialMeasurements(database: InfluxDBStore, measurement: Measurement, count: Integer): DataFrame = {
+    val recent = database
+      .getRecent(measurement.name, measurement.partitions, measurement.valueField, count)
+
+    convertMeasurementsToDF(measurement, recent)
+  }
+
+  def reloadMeasurements(database: InfluxDBStore, measurement: Measurement, df: DataFrame, limit: Integer): DataFrame = {
     val lastTime = df.orderBy(desc("time")).take(1).head(0).asInstanceOf[Long]
 
     val lastTimeString = Util.timeLongToString(lastTime)
 
-    metricSource.database
-      .getSince(measurement.name, measurement.valueField, lastTimeString)
-      .map(x => {
-        val timeString = x.getOrElse("time", "").asInstanceOf[String]
-        val value = x.getOrElse(measurement.valueField, 0).asInstanceOf[BigDecimal]
-        Metric(Util.timeStringToLong(timeString), value)
-      })
-      .toDF()
+    val since = database
+      .getSince(measurement.name, measurement.partitions, measurement.valueField, lastTimeString)
+
+    val sinceDF = convertMeasurementsToDF(measurement, since)
+
+    sinceDF
       .union(df)
       .orderBy(desc("time"))
-      .limit(2000)
+      .limit(limit)
   }
 
-  def writeTransformations(transformer: Transformer, measurement: Measurement, metricsDF: DataFrame): Unit = {
+  def writeTransformations(transformerDataStore: InfluxDBStore, transformer: Transformer, measurement: Measurement, metricsDF: DataFrame): Unit = {
     val columns = metricsDF.columns
 
-    val data = metricsDF.collect.map(metric => {
-      val values = metric.getValuesMap(columns)
-      val timeString = Util.timeLongToString(values.getOrElse("time", 0L))
-      val valueMap = values.filterKeys(_ != "time")
-        .map(x => {
-          val doubleValue = x._2.getClass.toString match {
-            case "class java.math.BigDecimal" => x._2.asInstanceOf[java.math.BigDecimal].doubleValue
-            case "class java.lang.Double" => x._2.asInstanceOf[java.lang.Double].doubleValue()
-          }
-          (x._1, (doubleValue * 10000).toLong)
-        })
-      (
-        timeString,
-        valueMap
-      )
-    }).toList
+    metricsDF.collect.foreach(metric => {
 
-    cloverStore.write(
-      transformer.tableName(),
-      measurement.name,
-      measurement.valueField,
-      data
-    )
+      val fields = metric.getValuesMap(columns)
+
+      val tags = measurement.partitions.map(partition_name => {
+        (partition_name, fields.getOrElse(partition_name, ""))
+      }).toMap
+
+      val time = Util.timeLongToString(fields.getOrElse("time", 0L))
+
+      val dataPoints = fields.filterKeys(x => {
+        !(measurement.partitions ++ List("time")).contains(x)
+      })
+
+      val data = List(
+        (time, dataPoints)
+      )
+
+      transformerDataStore.write(
+        measurement.name + "_" + measurement.valueField,
+        tags,
+        data
+      )
+    })
   }
 
 }
