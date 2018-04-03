@@ -21,7 +21,6 @@ module TrafficSimulator
           output = {
             :url => url,
             :durationInMillis => (endTime.strftime('%Q').to_i - startTime.strftime('%Q').to_i),
-            :code => response.code,
             :message => response.message,
             :bodyLength => response.body.length,
             :server => response.body[/Host: ([a-f0-9]+)/,1]
@@ -29,7 +28,7 @@ module TrafficSimulator
           values = {
             :bodyLength => response.body.length,
             :message => response.message,
-            :code => response.code,
+            :code => response.code.to_i,
             :durationInMillis => (endTime.strftime('%Q').to_i - startTime.strftime('%Q').to_i)
           }
           tags = {
