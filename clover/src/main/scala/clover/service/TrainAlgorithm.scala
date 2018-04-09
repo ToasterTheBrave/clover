@@ -37,7 +37,7 @@ object TrainAlgorithm {
 
       try {
         val model = algorithm.train(measurement, measurementsDF)
-        val modelFileLocation = algorithm.modelLocation() + "_" + measurement.name + "-" + measurement.valueField + "_" + System.currentTimeMillis().toString
+        val modelFileLocation = algorithm.modelLocation() + measurement.name + "-" + measurement.valueField
         model.save(modelFileLocation)
       } catch {
         case e: Exception => println("Exception thrown! - " + e.getMessage)

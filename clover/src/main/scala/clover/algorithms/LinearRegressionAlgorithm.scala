@@ -15,7 +15,7 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
   }
 
   def modelLocation(): String = {
-    "/home/truppert/projects/master-project/clover/data/models/linear-regression"
+    "/home/truppert/projects/master-project/clover/data/models/linear-regression/"
   }
 
   def colsToVector(measurement: Measurement, df: DataFrame): DataFrame = {
