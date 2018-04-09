@@ -78,6 +78,8 @@ class TransformMetricsTest extends FunSuite with MockitoSugar {
     )
   )
 
+  val measurement = Measurement("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field")
+
   test("main") {
     // Side effects only.  Nothing to test
   }
@@ -91,8 +93,6 @@ class TransformMetricsTest extends FunSuite with MockitoSugar {
   }
 
   test("convertMeasurementsToDF - returns expected data frame") {
-    val measurement = Measurement("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field")
-
     val expected = List(
       (Util.timeStringToLong("2017-12-04T12:03:01Z"), "test_partition_1_name", "test_partition_2_name", 10.001),
       (Util.timeStringToLong("2017-12-04T12:03:02Z"), "test_partition_1_name", "test_partition_2_name", 20.002),
@@ -121,7 +121,6 @@ class TransformMetricsTest extends FunSuite with MockitoSugar {
       (Util.timeStringToLong("2017-12-04T12:03:05Z"), "test_partition_1_name", "test_partition_2_name", 50.005)
     ).toDF("time", "test_partition_1", "test_partition_2", "test_value_field")
 
-    val measurement = Measurement("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field")
     val actual = TransformMetrics.getInitialMeasurements(database, measurement, 5)
 
     assert(expected.columns.deep == actual.columns.deep)
@@ -144,7 +143,6 @@ class TransformMetricsTest extends FunSuite with MockitoSugar {
       (Util.timeStringToLong("2017-12-04T12:03:03Z"), "test_partition_1_name", "test_partition_2_name", 30.003)
     ).toDF("time", "test_partition_1", "test_partition_2", "test_value_field")
 
-    val measurement = Measurement("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field")
     val initialDF = List(
       (Util.timeStringToLong("2017-12-04T12:03:01Z"), "test_partition_1_name", "test_partition_2_name", 10.001),
       (Util.timeStringToLong("2017-12-04T12:03:02Z"), "test_partition_1_name", "test_partition_2_name", 20.002),

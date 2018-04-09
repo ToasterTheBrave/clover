@@ -59,6 +59,13 @@ class InfluxDBStore(host: String = "", port: Integer = 8086) {
     resultAsMap(result)
   }
 
+  def getAllRecent(measurement: String, count: Int): List[Map[String, Any]] = {
+    val future = db.query(s"select * from $measurement order by time desc limit $count")
+    val result = Await.result(future, 60.seconds)
+
+    resultAsMap(result)
+  }
+
   def write(measurementName: String, tags: Map[String, String], data: List[(String, Map[String, Any])]): Boolean = {
     val points = data.map(metricData => {
       Point(

@@ -107,6 +107,55 @@ class influxDBIntegrationTest extends FunSuite with BeforeAndAfterEach {
     )
   }
 
+  test("getAllRecent") {
+    assert(
+      influxDB.getAllRecent("test_measurement_1", 4)
+      ==
+      List(
+        Map(
+          "time" -> "2017-12-04T12:03:05Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
+          "value1" -> 1,
+          "value2" -> 2,
+          "value3" -> 3,
+          "value4" -> 4.5,
+          "value5" -> 5
+        ),
+        Map(
+          "time" -> "2017-12-04T12:03:04Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
+          "value1" -> 1,
+          "value2" -> 2,
+          "value3" -> 3,
+          "value4" -> 4.5,
+          "value5" -> 5
+        ),
+        Map(
+          "time" -> "2017-12-04T12:03:03Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
+          "value1" -> 1,
+          "value2" -> 2,
+          "value3" -> 3,
+          "value4" -> 4.5,
+          "value5" -> 5
+        ),
+        Map(
+          "time" -> "2017-12-04T12:03:02Z",
+          "partition_key_1" -> "partition_value_1",
+          "partition_key_2" -> "partition_value_2",
+          "value1" -> 1,
+          "value2" -> 2,
+          "value3" -> 3,
+          "value4" -> 4.5,
+          "value5" -> 5
+        )
+      )
+    )
+  }
+
   test("write") {
     assert(
       influxDB.getRecent("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", 1)
