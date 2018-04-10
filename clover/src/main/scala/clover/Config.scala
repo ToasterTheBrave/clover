@@ -174,10 +174,8 @@ object Config {
           Measurement("system", List("host"), "n_cpus"),
           Measurement("system", List("host"), "n_users"),
           Measurement("system", List("host"), "uptime")
-
         )
       )
-
     )
   }
 

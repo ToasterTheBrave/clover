@@ -1,17 +1,23 @@
 package clover.algorithms
 
 import clover.Measurement
+import clover.service.TransformMetrics.sparkSession
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types._
 
 class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
 
   import sparkSession.implicits._
 
-  def databaseName(): String = {
+  def transformedDatabaseName(): String = {
     "linear_regression_transformed"
+  }
+
+  def evaluatedDatabaseName(): String = {
+    "linear_regression_evaluated"
   }
 
   def modelLocation(): String = {
@@ -26,8 +32,16 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
       .setInputCols(inputCols)
       .setOutputCol("features")
 
+    val measurementColumns = df.columns.filter(x => {
+      (List("time", measurement.valueField) ++ measurement.partitions).contains(x)
+    })
+    val selectColumns = (measurementColumns ++ List("features")).map(x => {
+      col(x)
+    })
+
+
     assembler.transform(df)
-      .select(col(measurement.valueField) as "label", $"features")
+      .select(selectColumns: _*)
   }
 
   def train(measurement: Measurement, df: DataFrame): LinearRegressionModel = {
@@ -40,6 +54,7 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
       .setMaxIter(100)
       .setRegParam(1)
       .setElasticNetParam(0.8)
+      .setLabelCol(measurement.valueField)
 
     val model = lr.fit(dfSplit(0))
 
@@ -58,4 +73,48 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
 
     model
   }
+
+  def loadModel(measurement: Measurement): LinearRegressionModel = {
+    LinearRegressionModel.load(modelLocation() + measurement.name + "-" + measurement.valueField)
+  }
+
+  def evaluate(measurement: Measurement, model: LinearRegressionModel, df: DataFrame): DataFrame = {
+    val vector = colsToVector(measurement, df)
+
+    val evaluation = model.evaluate(vector)
+
+    buildEvaluatedDF(measurement, evaluation.predictions, evaluation.meanAbsoluteError)
+  }
+
+  def buildEvaluatedDF(measurement: Measurement, predictions: DataFrame, meanAbsoluteError: Double): DataFrame = {
+    val columns = List("time", measurement.valueField, "prediction", "meanAbsoluteError") ++ measurement.partitions
+    val schema = columns.map(x => {
+      x match {
+        case "prediction" => StructField(x, DoubleType)
+        case "meanAbsoluteError" => StructField(x, DoubleType)
+        case measurement.valueField => StructField(x, DoubleType)
+        case _ => StructField(x, StringType)
+      }
+    })
+
+    val rows = predictions.collect.map(row => {
+      val valuesMap = row.getValuesMap(List("time", measurement.valueField, "prediction") ++ measurement.partitions)
+
+      val partitionValues = measurement.partitions.map(partition => {
+        valuesMap(partition).asInstanceOf[String]
+      })
+
+      val mergedList = List(
+        valuesMap("time").asInstanceOf[String],
+        valuesMap(measurement.valueField),
+        valuesMap("prediction"),
+        meanAbsoluteError
+      ) ++ partitionValues
+
+      Row(mergedList: _*)
+    })
+
+    sparkSession.createDataFrame(sparkSession.sparkContext.parallelize(rows), StructType(schema))
+  }
+
 }

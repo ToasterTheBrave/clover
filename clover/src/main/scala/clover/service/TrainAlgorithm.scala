@@ -12,6 +12,7 @@ object TrainAlgorithm {
     .builder()
     .master("local")
     .appName("Clover")
+    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
   val metricSources:List[MetricSource] = Config.metricSources()
@@ -32,8 +33,8 @@ object TrainAlgorithm {
 
   def runTraining(algorithms: List[Algorithm], measurement: Measurement): Unit = {
     algorithms.foreach(algorithm => {
-      val algorithmDataStore = cloverStore.setDB(algorithm.databaseName())
-      val measurementsDF = getRecentTransformedMeasurements(algorithmDataStore, measurement, 100000)
+      val transformedDataStore = cloverStore.setDB(algorithm.transformedDatabaseName())
+      val measurementsDF = getRecentTransformedMeasurements(transformedDataStore, measurement, 100000)
 
       try {
         val model = algorithm.train(measurement, measurementsDF)
@@ -80,5 +81,4 @@ object TrainAlgorithm {
 
     sparkSession.createDataFrame(sparkSession.sparkContext.parallelize(rows), StructType(schema))
   }
-
 }

@@ -13,12 +13,11 @@ object TransformMetrics {
     .builder()
     .master("local")
     .appName("Clover")
+    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
-  import sparkSession.implicits._
-
   val metricSources:List[MetricSource] = Config.metricSources()
-  val cloverStore = Config.cloverStore()
+  val cloverStore:InfluxDBStore = Config.cloverStore()
 
   def main(args: Array[String]) {
     run(List(new LinearRegressionTransformer(sparkSession)))
