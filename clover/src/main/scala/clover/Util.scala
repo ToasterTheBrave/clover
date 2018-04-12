@@ -1,19 +1,18 @@
 package clover
 
-import java.time.Instant
-import java.util.Date
+import java.util.{Date, TimeZone}
 
 object Util {
 
-  val timeZoneDiff: Integer = 7 * 60 * 60 * 1000
   val format = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  format.setTimeZone(TimeZone.getTimeZone("UTC"))
 
   def timeStringToLong(timeString: String): Long = {
-    format.parse(timeString).getTime - timeZoneDiff
+    format.parse(timeString).getTime
   }
 
   def timeLongToString(timeLong: Long): String = {
-    format.format(new Date(timeLong + timeZoneDiff))
+    format.format(new Date(timeLong))
   }
 
 }
