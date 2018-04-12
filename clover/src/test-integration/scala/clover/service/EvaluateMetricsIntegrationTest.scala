@@ -86,7 +86,5 @@ class EvaluateMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach {
         )
       )
     )
-
-
   }
 }

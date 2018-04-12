@@ -27,21 +27,26 @@ object TransformMetrics {
     while(true) {
       metricSources.foreach(metricSource => {
         metricSource.measurements.foreach(measurement => {
-          println("Running transformers on " + measurement.name + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
-          var measurementsDF = getInitialMeasurements(metricSource.database, measurement, 10000)
-          measurementsDF = reloadMeasurements(metricSource.database, measurement, measurementsDF, 2000)
-          runTransformers(transformers, measurement, measurementsDF)
+          runTransformers(transformers, metricSource, measurement)
         })
       })
     }
   }
 
-  def runTransformers(transformers: List[Transformer], measurement: Measurement, metricsDF: DataFrame): Unit = {
+  def runTransformers(transformers: List[Transformer], metricSource: MetricSource, measurement: Measurement): Unit = {
     transformers.foreach(transformer => {
-      val transformerDataStore = cloverStore.setDB(transformer.databaseName())
-      val lastProcessedTime = transformerDataStore.getLastProcessedTime(measurement.name)
-      val transformedMetrics = transformer.transform(metricsDF, measurement, lastProcessedTime)
-      writeTransformations(transformerDataStore, transformer, measurement, transformedMetrics)
+      cloverStore.setDB(transformer.databaseName())
+      val lastTransformedTime = cloverStore.getLastProcessedTime(measurement.name + "_" + measurement.valueField)
+
+      println("Running transformers on " + measurement.name + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField + " : " + lastTransformedTime)
+
+      val measurementsDF = getMeasurementsSinceLastRun(metricSource.database, measurement, lastTransformedTime)
+      println("Measurements Last time: " + Util.timeLongToString(measurementsDF.select("time").orderBy(desc("time")).limit(1).head.get(0).asInstanceOf[Long]))
+
+      val transformedMetrics = transformer.transform(measurementsDF, measurement, lastTransformedTime)
+
+      cloverStore.setDB(transformer.databaseName())
+      writeTransformations(cloverStore, transformer, measurement, transformedMetrics)
     })
   }
 
@@ -72,27 +77,13 @@ object TransformMetrics {
     sparkSession.createDataFrame(sparkSession.sparkContext.parallelize(rows), StructType(schema))
   }
 
-  def getInitialMeasurements(database: InfluxDBStore, measurement: Measurement, count: Integer): DataFrame = {
-    val recent = database
-      .getRecent(measurement.name, measurement.partitions, measurement.valueField, count)
+  def getMeasurementsSinceLastRun(database: InfluxDBStore, measurement: Measurement, lastTransformedTime: String): DataFrame = {
+    val untransformed = database
+      .getSince(measurement.name, measurement.partitions, measurement.valueField, lastTransformedTime, 17, 2000)
 
-    convertMeasurementsToDF(measurement, recent)
-  }
+    println("Measurements to transform: " + untransformed.size)
 
-  def reloadMeasurements(database: InfluxDBStore, measurement: Measurement, df: DataFrame, limit: Integer): DataFrame = {
-    val lastTime = df.orderBy(desc("time")).take(1).head(0).asInstanceOf[Long]
-
-    val lastTimeString = Util.timeLongToString(lastTime)
-
-    val since = database
-      .getSince(measurement.name, measurement.partitions, measurement.valueField, lastTimeString)
-
-    val sinceDF = convertMeasurementsToDF(measurement, since)
-
-    sinceDF
-      .union(df)
-      .orderBy(desc("time"))
-      .limit(limit)
+    convertMeasurementsToDF(measurement, untransformed)
   }
 
   def writeTransformations(transformerDataStore: InfluxDBStore, transformer: Transformer, measurement: Measurement, metricsDF: DataFrame): Unit = {

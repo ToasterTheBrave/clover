@@ -66,7 +66,7 @@ class influxDBIntegrationTest extends FunSuite with BeforeAndAfterEach {
   test("getSince") {
     // gets a value since a timestamp
     assert(
-      influxDB.getSince("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", "2017-12-04T12:03:03Z")
+      influxDB.getSince("test_measurement_1", List("partition_key_1", "partition_key_2"), "value1", "2017-12-04T12:03:03Z", 0, 2)
       ==
       List(
         Map(

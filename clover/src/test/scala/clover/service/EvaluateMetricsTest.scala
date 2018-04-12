@@ -101,7 +101,7 @@ class EvaluateMetricsTest extends FunSuite with MockitoSugar {
   test("getTransformedDF - returns a DataFrame from data in InfluxDB") {
     val database = mock[InfluxDBStore]
 
-    when(database.getAllSince("test_measurement_name_test_value_field", "2017-12-04T12:03:01Z"))
+    when(database.getAllSince("test_measurement_name_test_value_field", "2017-12-04T12:03:01Z", 1000))
       .thenReturn(recentData)
 
     val expected = List(

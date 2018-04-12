@@ -107,51 +107,20 @@ class TransformMetricsTest extends FunSuite with MockitoSugar {
     assert(expected.collect.deep == actual.collect.deep)
   }
 
-  test("getInitialMeasurements - returns expected data frame") {
+  test("getMeasurementsSinceLastRun - returns expected data frame") {
     val database = mock[InfluxDBStore]
 
-    when(database.getRecent("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field", 5))
-      .thenReturn(recentData)
-
-    val expected = List(
-      (Util.timeStringToLong("2017-12-04T12:03:01Z"), "test_partition_1_name", "test_partition_2_name", 10.001),
-      (Util.timeStringToLong("2017-12-04T12:03:02Z"), "test_partition_1_name", "test_partition_2_name", 20.002),
-      (Util.timeStringToLong("2017-12-04T12:03:03Z"), "test_partition_1_name", "test_partition_2_name", 30.003),
-      (Util.timeStringToLong("2017-12-04T12:03:04Z"), "test_partition_1_name", "test_partition_2_name", 40.004),
-      (Util.timeStringToLong("2017-12-04T12:03:05Z"), "test_partition_1_name", "test_partition_2_name", 50.005)
-    ).toDF("time", "test_partition_1", "test_partition_2", "test_value_field")
-
-    val actual = TransformMetrics.getInitialMeasurements(database, measurement, 5)
-
-    assert(expected.columns.deep == actual.columns.deep)
-    assert(expected.collect.deep == actual.collect.deep)
-  }
-
-  test("reloadMeasurements - returns expected data frame") {
-    val database = mock[InfluxDBStore]
-
-    when(database.getSince("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field", "2017-12-04T12:03:05Z"))
+    when(database.getSince("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field", "2017-12-04T12:03:05Z", 17, 2000))
       .thenReturn(sinceData)
 
     val expected = List(
-      (Util.timeStringToLong("2017-12-04T12:03:09Z"), "test_partition_1_name", "test_partition_2_name", 90.009),
-      (Util.timeStringToLong("2017-12-04T12:03:08Z"), "test_partition_1_name", "test_partition_2_name", 80.008),
-      (Util.timeStringToLong("2017-12-04T12:03:07Z"), "test_partition_1_name", "test_partition_2_name", 70.007),
       (Util.timeStringToLong("2017-12-04T12:03:06Z"), "test_partition_1_name", "test_partition_2_name", 60.006),
-      (Util.timeStringToLong("2017-12-04T12:03:05Z"), "test_partition_1_name", "test_partition_2_name", 50.005),
-      (Util.timeStringToLong("2017-12-04T12:03:04Z"), "test_partition_1_name", "test_partition_2_name", 40.004),
-      (Util.timeStringToLong("2017-12-04T12:03:03Z"), "test_partition_1_name", "test_partition_2_name", 30.003)
+      (Util.timeStringToLong("2017-12-04T12:03:07Z"), "test_partition_1_name", "test_partition_2_name", 70.007),
+      (Util.timeStringToLong("2017-12-04T12:03:08Z"), "test_partition_1_name", "test_partition_2_name", 80.008),
+      (Util.timeStringToLong("2017-12-04T12:03:09Z"), "test_partition_1_name", "test_partition_2_name", 90.009)
     ).toDF("time", "test_partition_1", "test_partition_2", "test_value_field")
 
-    val initialDF = List(
-      (Util.timeStringToLong("2017-12-04T12:03:01Z"), "test_partition_1_name", "test_partition_2_name", 10.001),
-      (Util.timeStringToLong("2017-12-04T12:03:02Z"), "test_partition_1_name", "test_partition_2_name", 20.002),
-      (Util.timeStringToLong("2017-12-04T12:03:03Z"), "test_partition_1_name", "test_partition_2_name", 30.003),
-      (Util.timeStringToLong("2017-12-04T12:03:04Z"), "test_partition_1_name", "test_partition_2_name", 40.004),
-      (Util.timeStringToLong("2017-12-04T12:03:05Z"), "test_partition_1_name", "test_partition_2_name", 50.005)
-    ).toDF("time", "test_partition_1", "test_partition_2", "test_value_field")
-
-    val actual = TransformMetrics.reloadMeasurements(database, measurement, initialDF, 7)
+    val actual = TransformMetrics.getMeasurementsSinceLastRun(database, measurement, "2017-12-04T12:03:05Z")
 
     assert(expected.columns.deep == actual.columns.deep)
     assert(expected.collect.deep == actual.collect.deep)

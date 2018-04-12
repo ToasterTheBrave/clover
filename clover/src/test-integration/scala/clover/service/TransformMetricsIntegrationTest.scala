@@ -152,6 +152,5 @@ class TransformMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach w
           )
         )
     )
-
   }
 }
