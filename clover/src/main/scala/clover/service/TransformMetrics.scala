@@ -36,9 +36,9 @@ object TransformMetrics {
   def runTransformers(transformers: List[Transformer], metricSource: MetricSource, measurement: Measurement): Unit = {
     transformers.foreach(transformer => {
       cloverStore.setDB(transformer.databaseName())
-      val lastTransformedTime = cloverStore.getLastProcessedTime(measurement.name + "_" + measurement.valueField)
+      val lastTransformedTime = cloverStore.getLastProcessedTime(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField)
 
-      println("Running transformers on " + measurement.name + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField + " : " + lastTransformedTime)
+      println("Running transformers on " + measurement.name.replaceAll("\\.", "_") + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField + " : " + lastTransformedTime)
 
       val measurementsDF = getMeasurementsSinceLastRun(metricSource.database, measurement, lastTransformedTime)
       println("Measurements Last time: " + Util.timeLongToString(measurementsDF.select("time").orderBy(desc("time")).limit(1).head.get(0).asInstanceOf[Long]))
@@ -78,8 +78,15 @@ object TransformMetrics {
   }
 
   def getMeasurementsSinceLastRun(database: InfluxDBStore, measurement: Measurement, lastTransformedTime: String): DataFrame = {
+    // Special case for rails measurements because they use periods
+    val measurementName = if(measurement.name.startsWith("rails")) {
+      "\"" + measurement.name + "\""
+    } else {
+      measurement.name
+    }
+
     val untransformed = database
-      .getSince(measurement.name, measurement.partitions, measurement.valueField, lastTransformedTime, 17, 2000)
+      .getSince(measurementName, measurement.partitions, measurement.valueField, lastTransformedTime, 17, 2000)
 
     println("Measurements to transform: " + untransformed.size)
 
@@ -108,7 +115,7 @@ object TransformMetrics {
       )
 
       transformerDataStore.write(
-        measurement.name + "_" + measurement.valueField,
+        measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField,
         tags,
         data
       )
