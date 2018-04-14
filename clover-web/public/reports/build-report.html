@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      var regex = /[?]report=(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/
+      var filename = regex.exec(window.location.href)[1]
+
+      var script = document.createElement('script');
+      script.src = `/reports/data/${filename}.js`;
+      document.head.appendChild(script);
+    </script>
+  </head>
+  <body>
+    <div id="chart_div" style="height: 100%"></div>
+
+    <script type="text/javascript">
+      google.charts.load('current', {packages: ['corechart']});
+      google.charts.setOnLoadCallback(drawLineColors);
+
+      function drawLineColors() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('datetime', 'Time');
+        for(i = 0; i < columns.length; i++) {
+          data.addColumn('number', columns[i]);
+          data.addColumn({type: 'string', role: 'tooltip'})
+        }
+
+        data.addRows(rows);
+
+        var options = {
+          hAxis: {
+            title: 'Time',
+          },
+          vAxis: {
+            title: 'Error'
+          }
+        };
+
+        var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+  </body>
+</html>
+

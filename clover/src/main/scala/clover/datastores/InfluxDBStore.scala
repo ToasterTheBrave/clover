@@ -60,6 +60,13 @@ class InfluxDBStore(host: String = "", port: Integer = 8086) {
     resultAsMap(result)
   }
 
+  def getAllBetween(measurement: String, startTime: String, endTime: String): List[Map[String, Any]] = {
+    val future = db.query(s"select * from $measurement where time >= '$startTime' and time <= '$endTime'")
+    val result = Await.result(future, 60.seconds)
+
+    resultAsMap(result)
+  }
+
   def getRecent(measurement: String, partitions: List[String], valueField: String, count: Int): List[Map[String, Any]] = {
     val future = db.query(s"select time, ${partitions.mkString(",")}, $valueField from $measurement order by time desc limit $count")
     val result = Await.result(future, 60.seconds)
