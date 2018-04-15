@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  metric_source: one
+  measurement_name: 
+  value_field: MyString
+
+two:
+  metric_source: two
+  measurement_name: 
+  value_field: MyString

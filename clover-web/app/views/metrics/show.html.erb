@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Metric source:</strong>
+  <%= "#{@metric.metric_source.host}:#{@metric.metric_source.port}/#{@metric.metric_source.database}" %>
+</p>
+
+<p>
+  <strong>Measurement name:</strong>
+  <%= @metric.measurement_name %>
+</p>
+
+<p>
+  <strong>Value field:</strong>
+  <%= @metric.value_field %>
+</p>
+
+<%= link_to 'Edit', edit_metric_path(@metric) %> |
+<%= link_to 'Back', metrics_path %>

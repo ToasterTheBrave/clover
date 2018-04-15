@@ -1,0 +1,32 @@
+<%= form_with(model: metric_source, local: true) do |form| %>
+  <% if metric_source.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(metric_source.errors.count, "error") %> prohibited this metric_source from being saved:</h2>
+
+      <ul>
+      <% metric_source.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :host %>
+    <%= form.text_field :host, id: :metric_source_host %>
+  </div>
+
+  <div class="field">
+    <%= form.label :port %>
+    <%= form.number_field :port, id: :metric_source_port %>
+  </div>
+
+  <div class="field">
+    <%= form.label :database %>
+    <%= form.text_field :database, id: :metric_source_database %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Metric:</strong>
+  <%= "#{@threshold.metric.measurement_name} - #{@threshold.metric.value_field}" %>
+</p>
+
+<p>
+  <strong>Low value:</strong>
+  <%= @threshold.low_value %>
+</p>
+
+<p>
+  <strong>High value:</strong>
+  <%= @threshold.high_value %>
+</p>
+
+<p>
+  <strong>Count:</strong>
+  <%= @threshold.count %>
+</p>
+
+<p>
+  <strong>Interval:</strong>
+  <%= @threshold.interval %>
+</p>
+
+<%= link_to 'Edit', edit_threshold_path(@threshold) %> |
+<%= link_to 'Back', thresholds_path %>

@@ -1,0 +1,31 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Metric Sources</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Host</th>
+      <th>Port</th>
+      <th>Database</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @metric_sources.each do |metric_source| %>
+      <tr>
+        <td><%= metric_source.host %></td>
+        <td><%= metric_source.port %></td>
+        <td><%= metric_source.database %></td>
+        <td><%= link_to 'Show', metric_source %></td>
+        <td><%= link_to 'Edit', edit_metric_source_path(metric_source) %></td>
+        <td><%= link_to 'Destroy', metric_source, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Metric Source', new_metric_source_path %>

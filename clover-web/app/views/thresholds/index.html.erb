@@ -1,0 +1,35 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Thresholds</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Low value</th>
+      <th>High value</th>
+      <th>Count</th>
+      <th>Interval</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @thresholds.each do |threshold| %>
+      <tr>
+        <td><%= "#{threshold.metric.measurement_name} - #{threshold.metric.value_field}" %></td>
+        <td><%= threshold.low_value %></td>
+        <td><%= threshold.high_value %></td>
+        <td><%= threshold.count %></td>
+        <td><%= threshold.interval %></td>
+        <td><%= link_to 'Show', threshold %></td>
+        <td><%= link_to 'Edit', edit_threshold_path(threshold) %></td>
+        <td><%= link_to 'Destroy', threshold, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Threshold', new_threshold_path %>

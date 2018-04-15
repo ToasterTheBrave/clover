@@ -1,0 +1,42 @@
+<%= form_with(model: threshold, local: true) do |form| %>
+  <% if threshold.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(threshold.errors.count, "error") %> prohibited this threshold from being saved:</h2>
+
+      <ul>
+      <% threshold.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :metric_id %>
+    <%= form.select(:metric_id, options_for_select(@metrics_select_options)) %>
+  </div>
+
+  <div class="field">
+    <%= form.label :low_value %>
+    <%= form.text_field :low_value, id: :threshold_low_value %>
+  </div>
+
+  <div class="field">
+    <%= form.label :high_value %>
+    <%= form.text_field :high_value, id: :threshold_high_value %>
+  </div>
+
+  <div class="field">
+    <%= form.label :count %>
+    <%= form.text_field :count, id: :threshold_count %>
+  </div>
+
+  <div class="field">
+    <%= form.label :interval %>
+    <%= form.number_field :interval, id: :threshold_interval %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

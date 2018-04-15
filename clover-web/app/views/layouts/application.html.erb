@@ -9,6 +9,16 @@
   </head>
 
   <body>
-    <%= yield %>
+    <div class="navigation">
+      <ul>
+        <li><%= link_to 'Metric Sources', metric_sources_path %></li>
+        <li><%= link_to 'Metrics', metrics_path %></li>
+        <li><%= link_to 'Thresholds', thresholds_path %></li>
+        <li><%= link_to 'Reports', reports_path %></li>
+      </ul>
+    </div>
+    <div class="content">
+      <%= yield %>
+    </div>
   </body>
 </html>
