@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180415004319) do
+ActiveRecord::Schema.define(version: 20180415133233) do
 
   create_table "metric_sources", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=latin1" do |t|
     t.string "host"
@@ -36,6 +36,12 @@ ActiveRecord::Schema.define(version: 20180415004319) do
     t.integer "count"
     t.integer "interval"
     t.index ["metric_id"], name: "index_thresholds_on_metric_id"
+  end
+
+  create_table "users", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=latin1" do |t|
+    t.string "first_name"
+    t.string "last_name"
+    t.string "email"
   end
 
   add_foreign_key "metrics", "metric_sources"
