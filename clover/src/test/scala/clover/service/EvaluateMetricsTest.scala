@@ -88,14 +88,14 @@ class EvaluateMetricsTest extends FunSuite with MockitoSugar {
       ("2018-04-02T22:40:00Z", 100.0, 100.0, 15.0, 0.0, "test_partition_1_name", "test_partition_2_name"), // No error when inside meanAbsoluteError range
       ("2018-04-02T22:40:00Z", 90.0, 100.0, 15.0, 0.0, "test_partition_1_name", "test_partition_2_name"), // No error when inside meanAbsoluteError range
       ("2018-04-02T22:40:00Z", 110.0, 100.0, 15.0, 0.0, "test_partition_1_name", "test_partition_2_name"), // No error when inside meanAbsoluteError range
-      ("2018-04-02T22:40:00Z", 80.0, 100.0, 15.0, -0.16666666666666666, "test_partition_1_name", "test_partition_2_name"), // Negative error equal to how far the actual is outside of the low range of meanAbsoluteError
-      ("2018-04-02T22:40:00Z", 130.0, 100.0, 15.0, 0.5, "test_partition_1_name", "test_partition_2_name") // Positive error equal to how far the actual is outside of the high range of meanAbsoluteError
+      ("2018-04-02T22:40:00Z", 80.0, 100.0, 15.0, -0.058823529411764705, "test_partition_1_name", "test_partition_2_name"), // Negative error equal to how far the actual is outside of the low range of meanAbsoluteError
+      ("2018-04-02T22:40:00Z", 130.0, 100.0, 15.0, 0.13043478260869565, "test_partition_1_name", "test_partition_2_name") // Positive error equal to how far the actual is outside of the high range of meanAbsoluteError
     ).toDF("time", "test_value_field", "prediction", "meanAbsoluteError", "error", "test_partition_1", "test_partition_2")
 
     val actual = EvaluateMetrics.evaluatedErrorData(measurement, evaluatedDF)
 
-    assert(expected.columns.deep == actual.columns.deep)
-    assert(expected.collect.deep == actual.collect.deep)
+    assert(actual.columns.deep == expected.columns.deep)
+    assert(actual.collect.deep == expected.collect.deep)
   }
 
   test("getTransformedDF - returns a DataFrame from data in InfluxDB") {

@@ -102,11 +102,9 @@ object EvaluateMetrics {
       val error = if(actual <= highThreshold && actual >= lowThreshold) {
         0.0
       } else if(actual > highThreshold) {
-        val diff = actual - highThreshold
-        diff / (2 * meanAbsoluteError)
+        (actual - highThreshold) / highThreshold
       } else if(actual < lowThreshold) {
-        val diff = actual - lowThreshold
-        diff / (2 * meanAbsoluteError)
+        (actual - lowThreshold) / lowThreshold
       } else {
         throw new Exception("Invalid condition")
       }
