@@ -46,7 +46,6 @@ class InfluxDBStore(host: String = "", port: Integer = 8086) {
   }
 
   def getSince(measurement: String, partitions: List[String], valueField: String, datetime: String, minutesPrevious: Int, limit: Int): List[Map[String, Any]] = {
-    println(s"select time, ${partitions.mkString(",")}, $valueField from $measurement where time > '$datetime' - ${minutesPrevious}m order by time asc limit $limit")
     val future = db.query(s"select time, ${partitions.mkString(",")}, $valueField from $measurement where time > '$datetime' order by time asc limit $limit")
     val result = Await.result(future, 60.seconds)
 

@@ -59,23 +59,16 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
     val model = lr.fit(dfSplit(0))
 
     val evaluations = model.evaluate(dfSplit(1))
-    println("test predictions:")
-    evaluations.predictions.show(5)
+
     println
-
-    println("test residuals")
-    evaluations.residuals.show(5)
-
     println("r2: " + evaluations.r2)
-    println("rootMeanSquaredError: " + evaluations.rootMeanSquaredError)
     println("meanAbsoluteError: " + evaluations.meanAbsoluteError)
-    println("meanSquaredError: " + evaluations.meanSquaredError)
 
     model
   }
 
   def loadModel(measurement: Measurement): LinearRegressionModel = {
-    LinearRegressionModel.load(modelLocation() + measurement.name + "-" + measurement.valueField)
+    LinearRegressionModel.load(modelLocation() + measurement.name.replaceAll("\\.", "_") + "-" + measurement.valueField)
   }
 
   def evaluate(measurement: Measurement, model: LinearRegressionModel, df: DataFrame): DataFrame = {

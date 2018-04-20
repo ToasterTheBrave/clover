@@ -37,11 +37,19 @@ object TransformMetrics {
     transformers.foreach(transformer => {
       cloverStore.setDB(transformer.databaseName())
       val lastTransformedTime = cloverStore.getLastProcessedTime(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField)
+      val behindAsMillis = System.currentTimeMillis() - Util.timeStringToLong(lastTransformedTime)
+      val behindAsSeconds = behindAsMillis / 1000
+      val behindHours = (behindAsSeconds / 3600).formatted("%02d")
+      val behindMinutes = (behindAsSeconds % 3600 / 60).formatted("%02d")
+      val behindSeconds = (behindAsSeconds % 3600 % 60).formatted("%02d")
+      val behindTime = s"$behindHours:$behindMinutes:$behindSeconds"
 
-      println("Running transformers on " + measurement.name.replaceAll("\\.", "_") + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField + " : " + lastTransformedTime)
+      println
+      println("Running transformers on " + measurement.name.replaceAll("\\.", "_") + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
+      println("Last transformed: " + lastTransformedTime)
+      println("Currently behind by " + behindTime)
 
       val measurementsDF = getMeasurementsSinceLastRun(metricSource.database, measurement, lastTransformedTime)
-      println("Measurements Last time: " + Util.timeLongToString(measurementsDF.select("time").orderBy(desc("time")).limit(1).head.get(0).asInstanceOf[Long]))
 
       val transformedMetrics = transformer.transform(measurementsDF, measurement, lastTransformedTime)
 

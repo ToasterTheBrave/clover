@@ -1,6 +1,6 @@
 package clover.service
 
-import clover.{Config, Measurement, MetricSource}
+import clover.{Config, Measurement, MetricSource, Util}
 import clover.algorithms.{Algorithm, LinearRegressionAlgorithm}
 import clover.datastores.InfluxDBStore
 import org.apache.spark.sql.types._
@@ -36,8 +36,19 @@ object EvaluateMetrics {
     algorithms.foreach(algorithm => {
       try {
         cloverStore.setDB(algorithm.evaluatedDatabaseName())
-        val lastEvaluatedTime = cloverStore.getLastProcessedTime(measurement.name + "_" + measurement.valueField)
-        println("Running evaluation on " + measurement.name + " : " + measurement.valueField + " : " + lastEvaluatedTime)
+        val lastEvaluatedTime = cloverStore.getLastProcessedTime(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField)
+
+        val behindAsMillis = System.currentTimeMillis() - Util.timeStringToLong(lastEvaluatedTime)
+        val behindAsSeconds = behindAsMillis / 1000
+        val behindHours = (behindAsSeconds / 3600).formatted("%02d")
+        val behindMinutes = (behindAsSeconds % 3600 / 60).formatted("%02d")
+        val behindSeconds = (behindAsSeconds % 3600 % 60).formatted("%02d")
+        val behindTime = s"$behindHours:$behindMinutes:$behindSeconds"
+
+        println
+        println("Running evaluation on " + measurement.name.replaceAll("\\.", "_") + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
+        println("Last evaluated: " + lastEvaluatedTime)
+        println("Currently behind by " + behindTime)
 
         cloverStore.setDB(algorithm.transformedDatabaseName())
         val measurementsDF = getTransformedDF(cloverStore, measurement, lastEvaluatedTime)
@@ -73,7 +84,7 @@ object EvaluateMetrics {
       )
 
       dataStore.write(
-        measurement.name + "_" + measurement.valueField,
+        measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField,
         tags,
         data
       )
@@ -129,7 +140,7 @@ object EvaluateMetrics {
   }
 
   def getTransformedDF(database: InfluxDBStore, measurement: Measurement, lastEvalutedTime: String): DataFrame = {
-    val dbResponse = database.getAllSince(measurement.name + "_" + measurement.valueField, lastEvalutedTime, 1000)
+    val dbResponse = database.getAllSince(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField, lastEvalutedTime, 1000)
     convertTransformedMeasurementsToDF(measurement, dbResponse)
   }
 

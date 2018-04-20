@@ -38,7 +38,7 @@ object TrainAlgorithm {
 
       try {
         val model = algorithm.train(measurement, measurementsDF)
-        val modelFileLocation = algorithm.modelLocation() + measurement.name + "-" + measurement.valueField
+        val modelFileLocation = algorithm.modelLocation() + measurement.name.replaceAll("\\.", "_") + "-" + measurement.valueField
         model.save(modelFileLocation)
       } catch {
         case e: Exception => println("Exception thrown! - " + e.getMessage)
@@ -48,7 +48,7 @@ object TrainAlgorithm {
 
   def getRecentTransformedMeasurements(database: InfluxDBStore, measurement: Measurement, count: Integer): DataFrame = {
     val recent = database
-      .getAllRecent(measurement.name + "_" + measurement.valueField, count)
+      .getAllRecent(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField, count)
 
     convertTransformedMeasurementsToDF(measurement, recent)
   }
@@ -63,7 +63,7 @@ object TrainAlgorithm {
         case "class java.lang.Double" => StructField(x, DoubleType)
         case "class scala.math.BigDecimal" => StructField(x, DoubleType)
         case "class java.lang.String" => StructField(x, StringType)
-        case _ => throw new Exception("Unsupported field type: " + classString)
+        case _ => throw new Exception("Unsupported field type: " + classString + "\n")
       }
     })
 
