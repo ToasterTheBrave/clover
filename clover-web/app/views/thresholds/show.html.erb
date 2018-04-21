@@ -25,5 +25,12 @@
   <%= @threshold.interval %>
 </p>
 
+<p>
+  <strong>Users to alert:</strong>
+  <% @threshold.users.each do |user| %>
+  <li><%= user.email %></li>
+  <% end %>
+</p>
+
 <%= link_to 'Edit', edit_threshold_path(@threshold) %> |
 <%= link_to 'Back', thresholds_path %>

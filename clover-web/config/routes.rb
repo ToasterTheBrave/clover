@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  root 'reports#index'
+  resources :alerts
   resources :users
   resources :thresholds
   resources :metrics

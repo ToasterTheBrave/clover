@@ -22,6 +22,9 @@ class MetricsController < ApplicationController
 
   # GET /metrics/1/edit
   def edit
+    @metric_sources_select_options = MetricSource.all.map { |source|
+      ["#{source.host}:#{source.port}/#{source.database}", source.id]
+    }
   end
 
   # POST /metrics
@@ -46,6 +49,9 @@ class MetricsController < ApplicationController
   # PATCH/PUT /metrics/1
   # PATCH/PUT /metrics/1.json
   def update
+    @metric_sources_select_options = MetricSource.all.map { |source|
+      ["#{source.host}:#{source.port}/#{source.database}", source.id]
+    }
     respond_to do |format|
       if @metric.update(metric_params)
         format.html { redirect_to @metric, notice: 'Metric was successfully updated.' }

@@ -1,0 +1,24 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Report:</strong>
+  <%= @alert.report %>
+</p>
+
+<p>
+  <strong>Status:</strong>
+  <%= @alert.status %>
+</p>
+
+<p>
+  <strong>Triggered:</strong>
+  <%= @alert.triggered %>
+</p>
+
+<p>
+  <strong>Resolved:</strong>
+  <%= @alert.resolved %>
+</p>
+
+<%= link_to 'Edit', edit_alert_path(@alert) %> |
+<%= link_to 'Back', alerts_path %>

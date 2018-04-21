@@ -10,7 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180415133233) do
+ActiveRecord::Schema.define(version: 20180421221432) do
+
+  create_table "alert_rules", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=latin1" do |t|
+    t.bigint "threshold_id"
+    t.bigint "user_id"
+    t.index ["threshold_id"], name: "index_alert_rules_on_threshold_id"
+    t.index ["user_id"], name: "index_alert_rules_on_user_id"
+  end
+
+  create_table "alerts", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=latin1" do |t|
+    t.bigint "report_id"
+    t.string "status"
+    t.timestamp "triggered"
+    t.timestamp "resolved"
+    t.index ["report_id"], name: "index_alerts_on_report_id"
+  end
 
   create_table "metric_sources", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=latin1" do |t|
     t.string "host"
@@ -27,6 +42,8 @@ ActiveRecord::Schema.define(version: 20180415133233) do
 
   create_table "reports", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=latin1" do |t|
     t.string "timestamp"
+    t.bigint "threshold_id"
+    t.index ["threshold_id"], name: "index_reports_on_threshold_id"
   end
 
   create_table "thresholds", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=latin1" do |t|
@@ -44,6 +61,10 @@ ActiveRecord::Schema.define(version: 20180415133233) do
     t.string "email"
   end
 
+  add_foreign_key "alert_rules", "thresholds"
+  add_foreign_key "alert_rules", "users"
+  add_foreign_key "alerts", "reports"
   add_foreign_key "metrics", "metric_sources"
+  add_foreign_key "reports", "thresholds"
   add_foreign_key "thresholds", "metrics"
 end

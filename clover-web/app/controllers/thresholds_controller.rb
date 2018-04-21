@@ -23,6 +23,9 @@ class ThresholdsController < ApplicationController
 
   # GET /thresholds/1/edit
   def edit
+    @metrics_select_options = Metric.all.map { |metric|
+      ["#{metric.measurement_name} - #{metric.value_field}", metric.id]
+    }
   end
 
   # POST /thresholds
@@ -48,6 +51,9 @@ class ThresholdsController < ApplicationController
   # PATCH/PUT /thresholds/1
   # PATCH/PUT /thresholds/1.json
   def update
+    @metrics_select_options = Metric.all.map { |metric|
+      ["#{metric.measurement_name} - #{metric.value_field}", metric.id]
+    }
     respond_to do |format|
       if @threshold.update(threshold_params)
         format.html { redirect_to @threshold, notice: 'Threshold was successfully updated.' }
@@ -77,6 +83,6 @@ class ThresholdsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def threshold_params
-      params.require(:threshold).permit(:metric_id, :low_value, :high_value, :count, :interval)
+      params.require(:threshold).permit(:metric_id, :low_value, :high_value, :count, :interval, :user_id)
     end
 end
