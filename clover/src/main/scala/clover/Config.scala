@@ -4,21 +4,16 @@ import clover.datastores.InfluxDBStore
 
 object Config {
 
+  def reportLocation(): String = "/home/truppert/projects/master-project/clover-web/public/reports/data"
+
   def metricSources(): List[MetricSource] = {
     List(
       MetricSource(
-        new InfluxDBStore("18.233.132.222", 8086).connect().setDB("traffic_simulator"),
-        List(
-          Measurement("requests", List("server"), "durationInMillis"),
-          Measurement("requests", List("server"), "code")
-        )
-      ),
-      MetricSource(
         new InfluxDBStore("18.233.132.222", 8086).connect().setDB("rails_app"),
         List(
-          Measurement("\"rails.controller\"", List("server", "method"), "value"),
-          Measurement("\"rails.db\"", List("server", "method"), "value"),
-          Measurement("\"rails.view\"", List("server", "method"), "value")
+          Measurement("rails.controller", List("server", "method"), "value"),
+          Measurement("rails.db", List("server", "method"), "value"),
+          Measurement("rails.view", List("server", "method"), "value")
         )
       ),
       MetricSource(

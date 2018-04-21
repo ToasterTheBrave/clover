@@ -55,8 +55,8 @@ object BuildReport {
 
       val startTime = Util.timeLongToString(Util.timeStringToLong(endTime) - (3600 * 1000))
 
-      val testData = cloverStore.getAllBetween(measurementName + "_" + measurement.valueField, startTime, endTime)
-      val neededData = testData.map(dataPoint => {
+      val allBetweenData = cloverStore.getAllBetween(measurementName + "_" + measurement.valueField, startTime, endTime)
+      val neededData = allBetweenData.map(dataPoint => {
         val tags = measurement.partitions.map(x => {
           x + ": " + dataPoint(x)
         }).mkString(", ")
