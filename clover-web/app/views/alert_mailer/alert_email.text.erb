@@ -1,0 +1,7 @@
+Alert on <%= @metric.measurement_name %>:<%= @metric.value_field %>"
+====================================================================
+
+
+An alert has triggered for metric <%= @metric.measurement_name %>:<%= @metric.value_field %>.
+There were <%= @threshold.count %> points outside the range of <%= @threshold.low_value %> to <%= @threshold.high_value %>.
+The report can be viewed at http://localhost:3000/reports/<%= @alert.report.id %>

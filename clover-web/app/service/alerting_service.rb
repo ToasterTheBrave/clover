@@ -87,7 +87,7 @@ module AlertingService
   end
 
   def self.sendAlertEmails(threshold, alert)
-    # : TODO
+    AlertMailer.with(threshold: threshold, alert: alert).alert_email.deliver
   end
 
 end
