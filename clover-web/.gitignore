@@ -21,3 +21,6 @@
 # Clover Report files
 /public/reports/data/*
 !/public/reports/data/.keep
+
+# Clover jar that is stored in s3
+bin/clover.jar
