@@ -1,5 +1,6 @@
 <p id="notice"><%= notice %></p>
 
+<% if @report_exists %>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript" src="/reports/data/<%= @report.timestamp %>.js"></script>
 
@@ -34,5 +35,10 @@
     chart.draw(data, options);
   }
 </script>
+<% else %>
+<div>
+  Report doesn't exist yet. <%= link_to 'Generate Report', generate_report_path(@report) %>
+</div>
+<% end %>
 
 <%= link_to 'Back', reports_path %>
