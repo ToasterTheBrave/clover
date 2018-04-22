@@ -20,6 +20,7 @@ object TrainAlgorithm {
 
   def main(args: Array[String]) {
     run(List(new LinearRegressionAlgorithm(sparkSession)))
+    System.exit(0)
   }
 
   def run(algorithms: List[Algorithm]): Unit = {

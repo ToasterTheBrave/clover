@@ -21,6 +21,7 @@ object BuildReport {
 
   def main(args: Array[String]) {
     run(args(0))
+    System.exit(0)
   }
 
   def run(datetime: String): Unit = {

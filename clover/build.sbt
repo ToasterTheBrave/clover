@@ -6,9 +6,9 @@ lazy val root = (project in file("."))
   )
 
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-sql" % "2.2.1",
+  "org.apache.spark" %% "spark-sql" % "2.3.0",
 
-  "org.apache.spark" %% "spark-mllib" % "2.2.1",
+  "org.apache.spark" %% "spark-mllib" % "2.3.0",
 
   "mysql" % "mysql-connector-java" % "5.1.24",
 
