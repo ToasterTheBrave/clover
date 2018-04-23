@@ -26,6 +26,7 @@ object TrainAlgorithm {
   def run(algorithms: List[Algorithm]): Unit = {
     metricSources.foreach(metricSource => {
       metricSource.measurements.foreach(measurement => {
+        println
         println("Running training on " + measurement.name + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
         runTraining(algorithms, measurement)
       })

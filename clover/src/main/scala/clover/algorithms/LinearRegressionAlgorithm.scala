@@ -1,7 +1,6 @@
 package clover.algorithms
 
 import clover.Measurement
-import clover.service.TransformMetrics.sparkSession
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
@@ -60,7 +59,6 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
 
     val evaluations = model.evaluate(dfSplit(1))
 
-    println
     println("r2: " + evaluations.r2)
     println("meanAbsoluteError: " + evaluations.meanAbsoluteError)
 
