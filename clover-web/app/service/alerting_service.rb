@@ -42,11 +42,11 @@ module AlertingService
 
   def self.getMostRecent(threshold, influxdb)
     metric = threshold.metric
-    resp = influxdb.query "select #{metric.value_field} from #{metric.measurement_name} order by time desc limit 1"
+    resp = influxdb.query "select mean(#{metric.value_field}) from #{metric.measurement_name} group by time(1s) fill(none) order by time desc limit 1"
     row = resp[0]["values"][0]
     {
       time: row["time"],
-      value: row[metric.value_field]
+      value: row["mean"]
     }
   end
 
