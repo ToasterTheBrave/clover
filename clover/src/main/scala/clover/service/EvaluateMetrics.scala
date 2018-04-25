@@ -34,6 +34,7 @@ object EvaluateMetrics {
 
   def runEvaluations(algorithms: List[Algorithm], measurement: Measurement): Unit = {
     algorithms.foreach(algorithm => {
+      Thread.sleep(1000)
       try {
         cloverStore.setDB(algorithm.evaluatedDatabaseName())
         val lastEvaluatedTime = cloverStore.getLastProcessedTime(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField)
@@ -138,7 +139,7 @@ object EvaluateMetrics {
   }
 
   def getTransformedDF(database: InfluxDBStore, measurement: Measurement, lastEvalutedTime: String): DataFrame = {
-    val dbResponse = database.getAllSince(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField, lastEvalutedTime, 1000)
+    val dbResponse = database.getAllSince(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField, lastEvalutedTime, 5000)
     convertTransformedMeasurementsToDF(measurement, dbResponse)
   }
 

@@ -32,7 +32,7 @@ object BuildReport {
     val lastHourDF = getAllMetricsLastHourDF(Config.cloverStore(), allMeasurements, datetime)
 
     // Decide on what we need
-    val mostAnomalous = getMostAnomalous(lastHourDF, 2)
+    val mostAnomalous = getMostAnomalous(lastHourDF, 10)
 
     // Build a report using the data points decided on
     val reportData = buildReportData(mostAnomalous)
@@ -54,9 +54,10 @@ object BuildReport {
     measurements.map(measurement => {
       val measurementName = measurement.name.replaceAll("\\.", "_")
 
-      val startTime = Util.timeLongToString(Util.timeStringToLong(endTime) - (3600 * 1000))
+      val reportEndTime = Util.timeLongToString(Util.timeStringToLong(endTime) + (15 * 60 * 1000))
+      val reportStartTime = Util.timeLongToString(Util.timeStringToLong(reportEndTime) - (60 * 60 * 1000))
 
-      val allBetweenData = cloverStore.getAllBetween(measurementName + "_" + measurement.valueField, startTime, endTime)
+      val allBetweenData = cloverStore.getAllBetween(measurementName + "_" + measurement.valueField, reportStartTime, reportEndTime)
       val neededData = allBetweenData.map(dataPoint => {
         val tags = measurement.partitions.map(x => {
           x + ": " + dataPoint(x)
@@ -112,7 +113,7 @@ object BuildReport {
       val error = valuesMap("error").asInstanceOf[Double]
       val prediction = valuesMap("prediction").asInstanceOf[Double]
       val meanAbsoluteError = valuesMap("meanAbsoluteError").asInstanceOf[Double]
-      val tooltip = s"$measurement - $valuesField\n$tags\nError: $error\nValue: $value\nExpected: $prediction +/- $meanAbsoluteError"
+      val tooltip = s"$datetime\n$measurement - $valuesField\n$tags\nError: $error\nValue: $value\nExpected: $prediction +/- $meanAbsoluteError"
       (datetime, Map(column -> (error, tooltip)))
     })
 
