@@ -14,6 +14,8 @@ libraryDependencies ++= Seq(
 
   "org.mockito" % "mockito-core" % "2.16.0" % "test",
 
+  "com.github.pureconfig" %% "pureconfig" % "0.7.2",
+
   "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 
 )

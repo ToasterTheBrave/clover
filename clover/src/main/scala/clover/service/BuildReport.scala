@@ -3,10 +3,12 @@ package clover.service
 import java.io.{File, PrintWriter}
 
 import clover.datastores.InfluxDBStore
-import clover.{Config, Measurement, MetricSource, Util}
+import clover._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
+import pureconfig.error.ConfigReaderFailures
+import pureconfig.loadConfigFromFiles
 
 object BuildReport {
 
@@ -20,16 +22,31 @@ object BuildReport {
   import sparkSession.implicits._
 
   def main(args: Array[String]) {
-    run(args(0))
+    val configFile = args(0)
+    val configFiles = Traversable(java.nio.file.Paths.get(s"/home/truppert/projects/master-project/clover/src/main/resources/${configFile}.conf"))
+
+    val simpleConfig: Either[ConfigReaderFailures, CloverConfig] = loadConfigFromFiles[CloverConfig](configFiles)
+    simpleConfig match {
+      case Left(ex) => {
+        ex.toList.foreach(println)
+        throw new Exception("Error loading config")
+      }
+      case Right(config) => {
+        val cloverStore = new InfluxDBStore(config.cloverStore.host, config.cloverStore.port).connect()
+        val datetime = args(1)
+        run(cloverStore, config, datetime)
+      }
+    }
+
     System.exit(0)
   }
 
-  def run(datetime: String): Unit = {
+  def run(cloverStore: InfluxDBStore, config: CloverConfig, datetime: String): Unit = {
     // Get a list of all evaluated measurements
-    val allMeasurements = getAllMeasurements(Config.metricSources())
+    val allMeasurements = getAllMeasurements(config.metricSources)
 
     // Get all data points over the last hour
-    val lastHourDF = getAllMetricsLastHourDF(Config.cloverStore(), allMeasurements, datetime)
+    val lastHourDF = getAllMetricsLastHourDF(cloverStore, allMeasurements, datetime)
 
     // Decide on what we need
     val mostAnomalous = getMostAnomalous(lastHourDF, 10)
@@ -38,7 +55,7 @@ object BuildReport {
     val reportData = buildReportData(mostAnomalous)
 
     // Actually write this report to a file for use by the report web ui
-    writeReportData(reportData, s"${Config.reportLocation()}/$datetime.js")
+    writeReportData(reportData, s"${config.reportLocation}/$datetime.js")
   }
 
   def getAllMeasurements(metricSources: List[MetricSource]): List[Measurement] = {

@@ -30,10 +30,10 @@ class TransformMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach w
 
     val metricsDF = List(
       (Util.timeStringToLong("2017-12-04T12:03:01Z"), "test_partition_1_name", "test_partition_2_name", 10.001, 1.01, 1),
-      (Util.timeStringToLong("2017-12-04T12:03:02Z"), "test_partition_1_name", "test_partition_2_name", 20.002, 2.02, 2),
-      (Util.timeStringToLong("2017-12-04T12:03:03Z"), "test_partition_1_name", "test_partition_2_name", 30.003, 3.03, 3),
+      (Util.timeStringToLong("2017-12-04T12:03:02Z"), "test_partition_1_name", "test_partition_2_name2", 20.002, 2.02, 2),
+      (Util.timeStringToLong("2017-12-04T12:03:03Z"), "test_partition_1_name2", "test_partition_2_name", 30.003, 3.03, 3),
       (Util.timeStringToLong("2017-12-04T12:03:04Z"), "test_partition_1_name", "test_partition_2_name", 40.004, 4.04, 4),
-      (Util.timeStringToLong("2017-12-04T12:03:05Z"), "test_partition_1_name", "test_partition_2_name", 50.005, 5.05, 5)
+      (Util.timeStringToLong("2017-12-04T12:03:05Z"), "test_partition_1_name2", "test_partition_2_name2", 50.005, 5.05, 5)
     ).toDF("time", "test_partition_1", "test_partition_2", "test_value_field", "test_calculated_field_1", "test_calculated_field_2")
 
     val transformer = mock[Transformer]
@@ -48,8 +48,8 @@ class TransformMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach w
       List(
         Map(
           "time" -> "2017-12-04T12:03:05Z",
-          "test_partition_1" -> "test_partition_1_name",
-          "test_partition_2" -> "test_partition_2_name",
+          "test_partition_1" -> "test_partition_1_name2",
+          "test_partition_2" -> "test_partition_2_name2",
           "test_value_field" -> 50.005
         ),
         Map(
@@ -60,14 +60,14 @@ class TransformMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach w
         ),
         Map(
           "time" -> "2017-12-04T12:03:03Z",
-          "test_partition_1" -> "test_partition_1_name",
+          "test_partition_1" -> "test_partition_1_name2",
           "test_partition_2" -> "test_partition_2_name",
           "test_value_field" -> 30.003
         ),
         Map(
           "time" -> "2017-12-04T12:03:02Z",
           "test_partition_1" -> "test_partition_1_name",
-          "test_partition_2" -> "test_partition_2_name",
+          "test_partition_2" -> "test_partition_2_name2",
           "test_value_field" -> 20.002
         ),
         Map(
@@ -85,8 +85,8 @@ class TransformMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach w
         List(
           Map(
             "time" -> "2017-12-04T12:03:05Z",
-            "test_partition_1" -> "test_partition_1_name",
-            "test_partition_2" -> "test_partition_2_name",
+            "test_partition_1" -> "test_partition_1_name2",
+            "test_partition_2" -> "test_partition_2_name2",
             "test_calculated_field_1" -> 5.05
           ),
           Map(
@@ -97,14 +97,14 @@ class TransformMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach w
           ),
           Map(
             "time" -> "2017-12-04T12:03:03Z",
-            "test_partition_1" -> "test_partition_1_name",
+            "test_partition_1" -> "test_partition_1_name2",
             "test_partition_2" -> "test_partition_2_name",
             "test_calculated_field_1" -> 3.03
           ),
           Map(
             "time" -> "2017-12-04T12:03:02Z",
             "test_partition_1" -> "test_partition_1_name",
-            "test_partition_2" -> "test_partition_2_name",
+            "test_partition_2" -> "test_partition_2_name2",
             "test_calculated_field_1" -> 2.02
           ),
           Map(
@@ -122,8 +122,8 @@ class TransformMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach w
         List(
           Map(
             "time" -> "2017-12-04T12:03:05Z",
-            "test_partition_1" -> "test_partition_1_name",
-            "test_partition_2" -> "test_partition_2_name",
+            "test_partition_1" -> "test_partition_1_name2",
+            "test_partition_2" -> "test_partition_2_name2",
             "test_calculated_field_2" -> 5
           ),
           Map(
@@ -134,14 +134,14 @@ class TransformMetricsIntegrationTest extends FunSuite with BeforeAndAfterEach w
           ),
           Map(
             "time" -> "2017-12-04T12:03:03Z",
-            "test_partition_1" -> "test_partition_1_name",
+            "test_partition_1" -> "test_partition_1_name2",
             "test_partition_2" -> "test_partition_2_name",
             "test_calculated_field_2" -> 3
           ),
           Map(
             "time" -> "2017-12-04T12:03:02Z",
             "test_partition_1" -> "test_partition_1_name",
-            "test_partition_2" -> "test_partition_2_name",
+            "test_partition_2" -> "test_partition_2_name2",
             "test_calculated_field_2" -> 2
           ),
           Map(

@@ -110,7 +110,7 @@ class TransformMetricsTest extends FunSuite with MockitoSugar {
   test("getMeasurementsSinceLastRun - returns expected data frame") {
     val database = mock[InfluxDBStore]
 
-    when(database.getSince("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field", "2017-12-04T12:03:05Z", 17, 2000))
+    when(database.getSince("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field", "2017-12-04T12:03:05Z", 17, 10000))
       .thenReturn(sinceData)
 
     val expected = List(

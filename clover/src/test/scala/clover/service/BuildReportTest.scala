@@ -1,6 +1,6 @@
 package clover.service
 
-import clover.{Measurement, MetricSource}
+import clover.{Measurement, MetricSource, MetricSource}
 import clover.datastores.InfluxDBStore
 import org.apache.spark.sql.SparkSession
 import org.scalatest.FunSuite
@@ -29,12 +29,12 @@ class BuildReportTest extends FunSuite with MockitoSugar {
   test("getAllMeasurements - returns a flat list of measurements from all metric sources") {
     val database = mock[InfluxDBStore]
     val metricSources = List(
-      MetricSource(database, List(
+      MetricSource("some-host", 1000, "some-database", List(
         Measurement("test_measurement_1", List("partition_1", "partition_2"), "value_field_1"),
         Measurement("test_measurement_1", List("partition_1", "partition_2"), "value_field_2"),
         Measurement("test_measurement_2", List("partition_3", "partition_4"), "value_field_1")
       )),
-      MetricSource(database, List(
+      MetricSource("some-host", 1000, "some-database", List(
         Measurement("test_measurement_3", List("partition_1", "partition_2"), "value_field_1"),
         Measurement("test_measurement_3", List("partition_1", "partition_2"), "value_field_2"),
         Measurement("test_measurement_4", List("partition_3", "partition_4"), "value_field_1")

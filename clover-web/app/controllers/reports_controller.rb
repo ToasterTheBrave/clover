@@ -14,8 +14,7 @@ class ReportsController < ApplicationController
   def generate
     set_report
 
-    logger.info "/opt/spark/bin/spark-submit --class 'clover.service.BuildReport' /home/truppert/projects/master-project/clover-web/bin/clover.jar #{@report.timestamp}"
-    system("/opt/spark/bin/spark-submit --class 'clover.service.BuildReport' /home/truppert/projects/master-project/clover-web/bin/clover.jar #{@report.timestamp}")
+    system("/opt/spark/bin/spark-submit --class 'clover.service.BuildReport' /home/truppert/projects/master-project/clover-web/bin/clover.jar all #{@report.timestamp}")
 
     success = false
     (1..10).each do |i|

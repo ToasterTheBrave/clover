@@ -3,9 +3,10 @@ package clover.service
 import clover.transformers.{LinearRegressionTransformer, Transformer}
 import clover._
 import clover.datastores.InfluxDBStore
-import org.apache.spark.sql.functions.desc
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import pureconfig.error.ConfigReaderFailures
+import pureconfig.loadConfigFromFiles
 
 object TransformMetrics {
 
@@ -16,45 +17,62 @@ object TransformMetrics {
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
-  val metricSources:List[MetricSource] = Config.metricSources()
-  val cloverStore:InfluxDBStore = Config.cloverStore()
-
   def main(args: Array[String]) {
-    run(List(new LinearRegressionTransformer(sparkSession)))
+    val configFile = args(0)
+    val configFiles = Traversable(java.nio.file.Paths.get(s"/home/truppert/projects/master-project/clover/src/main/resources/${configFile}.conf"))
+
+    val simpleConfig: Either[ConfigReaderFailures, CloverConfig] = loadConfigFromFiles[CloverConfig](configFiles)
+    simpleConfig match {
+      case Left(ex) => {
+        ex.toList.foreach(println)
+        throw new Exception("Error loading config")
+      }
+      case Right(config) => {
+        val cloverStore = new InfluxDBStore(config.cloverStore.host, config.cloverStore.port).connect()
+        run(cloverStore, config, List(new LinearRegressionTransformer(sparkSession)))
+      }
+    }
   }
 
-  def run(transformers: List[Transformer]): Unit = {
+  def run(cloverStore: InfluxDBStore, config: CloverConfig, transformers: List[Transformer]): Unit = {
     while(true) {
-      metricSources.foreach(metricSource => {
+      config.metricSources.foreach(metricSource => {
+        val metricStore = new InfluxDBStore(metricSource.host, metricSource.port).connect().setDB(metricSource.db)
         metricSource.measurements.foreach(measurement => {
-          runTransformers(transformers, metricSource, measurement)
+          runTransformers(cloverStore, transformers, metricStore, measurement)
         })
       })
     }
   }
 
-  def runTransformers(transformers: List[Transformer], metricSource: MetricSource, measurement: Measurement): Unit = {
+  def runTransformers(cloverStore: InfluxDBStore, transformers: List[Transformer], metricStore: InfluxDBStore, measurement: Measurement): Unit = {
     transformers.foreach(transformer => {
-      cloverStore.setDB(transformer.databaseName())
-      val lastTransformedTime = cloverStore.getLastProcessedTime(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField)
-      val behindAsMillis = System.currentTimeMillis() - Util.timeStringToLong(lastTransformedTime)
-      val behindAsSeconds = behindAsMillis / 1000
-      val behindHours = (behindAsSeconds / 3600).formatted("%02d")
-      val behindMinutes = (behindAsSeconds % 3600 / 60).formatted("%02d")
-      val behindSeconds = (behindAsSeconds % 3600 % 60).formatted("%02d")
-      val behindTime = s"$behindHours:$behindMinutes:$behindSeconds"
+      Thread.sleep(1000)
+      try {
+        cloverStore.setDB(transformer.databaseName())
+        val lastTransformedTime = cloverStore.getLastProcessedTime(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField)
+        val behindAsMillis = System.currentTimeMillis() - Util.timeStringToLong(lastTransformedTime)
+        val behindAsSeconds = behindAsMillis / 1000
+        val behindHours = (behindAsSeconds / 3600).formatted("%02d")
+        val behindMinutes = (behindAsSeconds % 3600 / 60).formatted("%02d")
+        val behindSeconds = (behindAsSeconds % 3600 % 60).formatted("%02d")
+        val behindTime = s"$behindHours:$behindMinutes:$behindSeconds"
 
-      println
-      println("Running transformers on " + measurement.name.replaceAll("\\.", "_") + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
-      println("Last transformed: " + lastTransformedTime)
-      println("Currently behind by " + behindTime)
+        println
+        println("Running transformers on " + measurement.name.replaceAll("\\.", "_") + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
+        println("Last transformed: " + lastTransformedTime)
+        println("Currently behind by " + behindTime)
 
-      val measurementsDF = getMeasurementsSinceLastRun(metricSource.database, measurement, lastTransformedTime)
+        val measurementsDF = getMeasurementsSinceLastRun(metricStore, measurement, lastTransformedTime)
 
-      val transformedMetrics = transformer.transform(measurementsDF, measurement, lastTransformedTime)
+        val transformedMetrics = transformer.transform(measurementsDF, measurement, lastTransformedTime)
 
-      cloverStore.setDB(transformer.databaseName())
-      writeTransformations(cloverStore, transformer, measurement, transformedMetrics)
+        cloverStore.setDB(transformer.databaseName())
+        writeTransformations(cloverStore, transformer, measurement, transformedMetrics)
+      } catch {
+        case e: Exception => println("Exception thrown! - " + e.getMessage)
+
+      }
     })
   }
 
@@ -94,7 +112,7 @@ object TransformMetrics {
     }
 
     val untransformed = database
-      .getSince(measurementName, measurement.partitions, measurement.valueField, lastTransformedTime, 17, 2000)
+      .getSince(measurementName, measurement.partitions, measurement.valueField, lastTransformedTime, 17, 10000)
 
     println("Measurements to transform: " + untransformed.size)
 
@@ -104,9 +122,8 @@ object TransformMetrics {
   def writeTransformations(transformerDataStore: InfluxDBStore, transformer: Transformer, measurement: Measurement, metricsDF: DataFrame): Unit = {
     val columns = metricsDF.columns
 
-    metricsDF.collect.foreach(metric => {
-
-      val fields = metric.getValuesMap(columns)
+    val data = metricsDF.collect.map(row => {
+      val fields = row.getValuesMap(columns)
 
       val tags = measurement.partitions.map(partition_name => {
         (partition_name, fields.getOrElse(partition_name, ""))
@@ -118,14 +135,40 @@ object TransformMetrics {
         !(measurement.partitions ++ List("time")).contains(x)
       })
 
-      val data = List(
-        (time, dataPoints)
+      Map(
+        "time" -> time,
+        "measurement" -> (measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField),
+        "tags" -> tags,
+        "dataPoints" -> dataPoints
       )
 
+    })
+
+    val groupedByTags = data.groupBy(x => {
+      x("tags")
+    }).values
+
+    groupedByTags.foreach(x => {
+
+      val pointData = x.map(a => {
+        Map(
+          "measurement" -> a("measurement"),
+          "tags" -> a("tags"),
+          "data" -> List((a("time"), a("dataPoints")))
+        )
+      })
+        .reduce((a, b) => {
+        Map(
+          "measurement" -> a("measurement"),
+          "tags" -> a("tags"),
+          "data" ->( a("data").asInstanceOf[List[(String, String)]] ++ b("data").asInstanceOf[List[(String, String)]])
+        )
+      })
+
       transformerDataStore.write(
-        measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField,
-        tags,
-        data
+        pointData("measurement").asInstanceOf[String],
+        pointData("tags").asInstanceOf[Map[String, String]],
+        pointData("data").asInstanceOf[List[(String, Map[String, Any])]]
       )
     })
   }

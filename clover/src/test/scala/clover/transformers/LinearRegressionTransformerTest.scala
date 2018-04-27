@@ -65,7 +65,32 @@ class LinearRegressionTransformerTest extends FunSuite {
       "last2STD",
       "last2Mean",
       "last1STD",
-      "last1Mean"
+      "last1Mean",
+      "pctDiff",
+      "pctDiffLast1000STD",
+      "pctDiffLast1000Mean",
+      "pctDiffLast100STD",
+      "pctDiffLast100Mean",
+      "pctDiffLast10STD",
+      "pctDiffLast10Mean",
+      "pctDiffLast9STD",
+      "pctDiffLast9Mean",
+      "pctDiffLast8STD",
+      "pctDiffLast8Mean",
+      "pctDiffLast7STD",
+      "pctDiffLast7Mean",
+      "pctDiffLast6STD",
+      "pctDiffLast6Mean",
+      "pctDiffLast5STD",
+      "pctDiffLast5Mean",
+      "pctDiffLast4STD",
+      "pctDiffLast4Mean",
+      "pctDiffLast3STD",
+      "pctDiffLast3Mean",
+      "pctDiffLast2STD",
+      "pctDiffLast2Mean",
+      "pctDiffLast1STD",
+      "pctDiffLast1Mean"
     )
 
     val allColumns = equalColumns ++ measurement.partitions

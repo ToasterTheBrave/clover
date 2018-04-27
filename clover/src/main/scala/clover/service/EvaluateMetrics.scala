@@ -1,10 +1,12 @@
 package clover.service
 
-import clover.{Config, Measurement, MetricSource, Util}
+import clover._
 import clover.algorithms.{Algorithm, LinearRegressionAlgorithm}
 import clover.datastores.InfluxDBStore
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import pureconfig.error.ConfigReaderFailures
+import pureconfig.loadConfigFromFiles
 
 object EvaluateMetrics {
 
@@ -15,24 +17,35 @@ object EvaluateMetrics {
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
-  val metricSources:List[MetricSource] = Config.metricSources()
-  val cloverStore:InfluxDBStore = Config.cloverStore()
-
   def main(args: Array[String]) {
-    run(List(new LinearRegressionAlgorithm(sparkSession)))
+    val configFile = args(0)
+    val configFiles = Traversable(java.nio.file.Paths.get(s"/home/truppert/projects/master-project/clover/src/main/resources/${configFile}.conf"))
+
+    val simpleConfig: Either[ConfigReaderFailures, CloverConfig] = loadConfigFromFiles[CloverConfig](configFiles)
+    simpleConfig match {
+      case Left(ex) => {
+        ex.toList.foreach(println)
+        throw new Exception("Error loading config")
+      }
+      case Right(config) => {
+        val cloverStore = new InfluxDBStore(config.cloverStore.host, config.cloverStore.port).connect()
+        run(cloverStore, config, List(new LinearRegressionAlgorithm(sparkSession)))
+      }
+    }
+
   }
 
-  def run(algorithms: List[Algorithm]): Unit = {
+  def run(cloverStore: InfluxDBStore, config: CloverConfig, algorithms: List[Algorithm]): Unit = {
     while(true) {
-      metricSources.foreach(metricSource => {
+      config.metricSources.foreach(metricSource => {
         metricSource.measurements.foreach(measurement => {
-          runEvaluations(algorithms, measurement)
+          runEvaluations(cloverStore, algorithms, measurement)
         })
       })
     }
   }
 
-  def runEvaluations(algorithms: List[Algorithm], measurement: Measurement): Unit = {
+  def runEvaluations(cloverStore: InfluxDBStore, algorithms: List[Algorithm], measurement: Measurement): Unit = {
     algorithms.foreach(algorithm => {
       Thread.sleep(1000)
       try {

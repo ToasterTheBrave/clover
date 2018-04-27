@@ -36,18 +36,18 @@ class LinearRegressionAlgorithmTest extends FunSuite {
       (30.003, 30, "test_partition_2_name", 3.03, "test_partition_1_name", "2017-12-04T12:03:03Z"),
       (40.004, 40, "test_partition_2_name", 4.04, "test_partition_1_name", "2017-12-04T12:03:04Z"),
       (50.005, 50, "test_partition_2_name", 5.05, "test_partition_1_name", "2017-12-04T12:03:05Z")
-    ).toDF("test_value_field", "test_calculated_field_1", "test_partition_2", "test_calculated_field_2", "test_partition_1", "time")
+    ).toDF("test_value_field", "last_test_calculated_field_1", "test_partition_2", "last_test_calculated_field_2", "test_partition_1", "time")
 
     val measurement = Measurement("test_measurement_name", List("test_partition_1", "test_partition_2"), "test_value_field")
 
     val assembler = new VectorAssembler()
-      .setInputCols(Array("test_calculated_field_1", "test_calculated_field_2"))
+      .setInputCols(Array("last_test_calculated_field_1", "last_test_calculated_field_2"))
       .setOutputCol("features")
 
     val expected = assembler.transform(df)
       .select($"test_value_field", $"test_partition_2", $"test_partition_1", $"time", $"features")
 
-    val actual = linearRegressionAlgorithm.colsToVector(measurement, df)
+    val actual = linearRegressionAlgorithm.colsToVector(measurement, df, measurement.valueField)
 
     assert(expected.columns.deep == actual.columns.deep)
     assert(expected.collect.deep == actual.collect.deep)
@@ -67,20 +67,20 @@ class LinearRegressionAlgorithmTest extends FunSuite {
 
   test("buildEvaluatedDF - merges together all evaluated info into a DataFrame") {
     val df = List(
-      (10.001, 10, "test_partition_2_name", 1.01, "test_partition_1_name", "2017-12-04T12:03:01Z", Vector(10, 1.01), 10.011),
-      (20.002, 20, "test_partition_2_name", 2.02, "test_partition_1_name", "2017-12-04T12:03:02Z", Vector(20, 2.02), 20.012),
-      (30.003, 30, "test_partition_2_name", 3.03, "test_partition_1_name", "2017-12-04T12:03:03Z", Vector(30, 3.03), 30.013),
-      (40.004, 40, "test_partition_2_name", 4.04, "test_partition_1_name", "2017-12-04T12:03:04Z", Vector(40, 4.04), 40.014),
-      (50.005, 50, "test_partition_2_name", 5.05, "test_partition_1_name", "2017-12-04T12:03:05Z", Vector(50, 5.05), 50.015)
-    ).toDF("test_value_field", "test_calculated_field_1", "test_partition_2", "test_calculated_field_2", "test_partition_1", "time", "features", "prediction")
+      (10.001, 10, "test_partition_2_name", 1.01, "test_partition_1_name", "2017-12-04T12:03:01Z", Vector(10, 1.01), 0.1, 10.011),
+      (20.002, 20, "test_partition_2_name", 2.02, "test_partition_1_name", "2017-12-04T12:03:02Z", Vector(20, 2.02), 0.2, 20.012),
+      (30.003, 30, "test_partition_2_name", 3.03, "test_partition_1_name", "2017-12-04T12:03:03Z", Vector(30, 3.03), 0.3, 30.013),
+      (40.004, 40, "test_partition_2_name", 4.04, "test_partition_1_name", "2017-12-04T12:03:04Z", Vector(40, 4.04), 0.4, 40.014),
+      (50.005, 50, "test_partition_2_name", 5.05, "test_partition_1_name", "2017-12-04T12:03:05Z", Vector(50, 5.05), 0.5, 50.015)
+    ).toDF("test_value_field", "test_calculated_field_1", "test_partition_2", "test_calculated_field_2", "test_partition_1", "time", "features", "pctDiff", "prediction")
 
     val expected = List(
-      ("2017-12-04T12:03:01Z", 10.001, 10.011, 0.02, "test_partition_1_name", "test_partition_2_name"),
-      ("2017-12-04T12:03:02Z", 20.002, 20.012, 0.02, "test_partition_1_name", "test_partition_2_name"),
-      ("2017-12-04T12:03:03Z", 30.003, 30.013, 0.02, "test_partition_1_name", "test_partition_2_name"),
-      ("2017-12-04T12:03:04Z", 40.004, 40.014, 0.02, "test_partition_1_name", "test_partition_2_name"),
-      ("2017-12-04T12:03:05Z", 50.005, 50.015, 0.02, "test_partition_1_name", "test_partition_2_name")
-    ).toDF("time", "test_value_field", "prediction", "meanAbsoluteError", "test_partition_1", "test_partition_2")
+      ("2017-12-04T12:03:01Z", 10.001, 0.1, 10.011, 0.02, "test_partition_1_name", "test_partition_2_name"),
+      ("2017-12-04T12:03:02Z", 20.002, 0.2, 20.012, 0.02, "test_partition_1_name", "test_partition_2_name"),
+      ("2017-12-04T12:03:03Z", 30.003, 0.3, 30.013, 0.02, "test_partition_1_name", "test_partition_2_name"),
+      ("2017-12-04T12:03:04Z", 40.004, 0.4, 40.014, 0.02, "test_partition_1_name", "test_partition_2_name"),
+      ("2017-12-04T12:03:05Z", 50.005, 0.5, 50.015, 0.02, "test_partition_1_name", "test_partition_2_name")
+    ).toDF("time", "test_value_field", "pctDiff", "prediction", "meanAbsoluteError", "test_partition_1", "test_partition_2")
 
     val actual = linearRegressionAlgorithm.buildEvaluatedDF(measurement, df, 0.02)
 

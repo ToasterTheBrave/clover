@@ -5,7 +5,8 @@ import clover.algorithms.{Algorithm, LinearRegressionAlgorithm}
 import clover.datastores.InfluxDBStore
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-
+import pureconfig.error.ConfigReaderFailures
+import pureconfig.loadConfigFromFiles
 object TrainAlgorithm {
 
   val sparkSession:SparkSession = SparkSession
@@ -15,33 +16,48 @@ object TrainAlgorithm {
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
-  val metricSources:List[MetricSource] = Config.metricSources()
-  val cloverStore = Config.cloverStore()
-
   def main(args: Array[String]) {
-    run(List(new LinearRegressionAlgorithm(sparkSession)))
+    val configFile = args(0)
+    val configFiles = Traversable(java.nio.file.Paths.get(s"/home/truppert/projects/master-project/clover/src/main/resources/${configFile}.conf"))
+
+    val simpleConfig: Either[ConfigReaderFailures, CloverConfig] = loadConfigFromFiles[CloverConfig](configFiles)
+    simpleConfig match {
+      case Left(ex) => {
+        ex.toList.foreach(println)
+        throw new Exception("Error loading config")
+      }
+      case Right(config) => {
+        val cloverStore = new InfluxDBStore(config.cloverStore.host, config.cloverStore.port).connect()
+        run(cloverStore, config, List(new LinearRegressionAlgorithm(sparkSession)))
+      }
+    }
     System.exit(0)
   }
 
-  def run(algorithms: List[Algorithm]): Unit = {
-    metricSources.foreach(metricSource => {
+  def run(cloverStore: InfluxDBStore, config: CloverConfig, algorithms: List[Algorithm]): Unit = {
+    config.metricSources.foreach(metricSource => {
       metricSource.measurements.foreach(measurement => {
         println
         println("Running training on " + measurement.name + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
-        runTraining(algorithms, measurement)
+        runTraining(cloverStore, algorithms, measurement)
       })
     })
   }
 
-  def runTraining(algorithms: List[Algorithm], measurement: Measurement): Unit = {
+  def runTraining(cloverStore: InfluxDBStore, algorithms: List[Algorithm], measurement: Measurement): Unit = {
     algorithms.foreach(algorithm => {
       val transformedDataStore = cloverStore.setDB(algorithm.transformedDatabaseName())
-      val measurementsDF = getRecentTransformedMeasurements(transformedDataStore, measurement, 100000)
+      val measurementsDF = getRecentTransformedMeasurements(transformedDataStore, measurement, 50000)
 
       try {
         val model = algorithm.train(measurement, measurementsDF)
         val modelFileLocation = algorithm.modelLocation() + measurement.name.replaceAll("\\.", "_") + "-" + measurement.valueField
-        model.save(modelFileLocation)
+        val r2 = model.summary.r2adj
+        if(r2 >= .3) {
+          model.save(modelFileLocation)
+        } else {
+          println(s"WARNING - not saving model because of low r2: ${r2}")
+        }
       } catch {
         case e: Exception => println("Exception thrown! - " + e.getMessage)
       }
