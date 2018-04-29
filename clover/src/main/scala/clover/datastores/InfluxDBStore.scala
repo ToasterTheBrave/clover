@@ -23,12 +23,17 @@ class InfluxDBStore(host: String = "", port: Integer = 8086) {
     this
   }
 
-  def resultAsMap(result: QueryResult): List[Map[String, Any]] = {
+  def resultAsMap(result: QueryResult, partitions: List[String]): List[Map[String, Any]] = {
     if(result.series.nonEmpty) {
       val columns = result.series.head.columns
-      val records = result.series.head.records
-      records.map(x => {
-        (columns zip x.allValues) (breakOut): Map[String, Any]
+      result.series.flatMap(oneSeries => {
+        val tags = partitions.flatMap(partition => {
+          Map(partition -> oneSeries.tags.apply(partition))
+        })
+        oneSeries.records.map(x => {
+          val values = (columns zip x.allValues) (breakOut): Map[String, Any]
+          values ++ tags
+        })
       })
     } else {
       List()
@@ -46,38 +51,40 @@ class InfluxDBStore(host: String = "", port: Integer = 8086) {
   }
 
   def getSince(measurement: String, partitions: List[String], valueField: String, datetime: String, minutesPrevious: Int, limit: Int): List[Map[String, Any]] = {
-    val future = db.query(s"select time, ${partitions.mkString(",")}, $valueField from $measurement where time > '$datetime' - ${minutesPrevious}m order by time asc limit $limit")
+    val queryString = s"select time, ${partitions.mkString(",")}, $valueField from $measurement where time > '$datetime' - ${minutesPrevious}m group by ${partitions.mkString(",")} order by time asc limit $limit"
+    val future = db.query(queryString)
     val result = Await.result(future, 60.seconds)
 
-    resultAsMap(result)
+    resultAsMap(result, partitions)
   }
 
-  def getAllSince(measurement: String, datetime: String, limit: Int = 1000000): List[Map[String, Any]] = {
-    val future = db.query(s"select * from $measurement where time > '$datetime' order by time asc limit $limit")
+  def getAllSince(measurement: String, partitions: List[String], datetime: String, limit: Int = 1000000): List[Map[String, Any]] = {
+    val queryString = s"select * from $measurement where time > '$datetime' group by ${partitions.mkString(",")} order by time asc limit $limit"
+    val future = db.query(queryString)
     val result = Await.result(future, 60.seconds)
 
-    resultAsMap(result)
+    resultAsMap(result, partitions)
   }
 
   def getAllBetween(measurement: String, startTime: String, endTime: String): List[Map[String, Any]] = {
     val future = db.query(s"select * from $measurement where time >= '$startTime' and time <= '$endTime'")
     val result = Await.result(future, 60.seconds)
 
-    resultAsMap(result)
+    resultAsMap(result, List())
   }
 
   def getRecent(measurement: String, partitions: List[String], valueField: String, count: Int): List[Map[String, Any]] = {
     val future = db.query(s"select time, ${partitions.mkString(",")}, $valueField from $measurement order by time desc limit $count")
     val result = Await.result(future, 60.seconds)
 
-    resultAsMap(result)
+    resultAsMap(result, partitions)
   }
 
   def getAllRecent(measurement: String, count: Int): List[Map[String, Any]] = {
     val future = db.query(s"select * from $measurement order by time desc limit $count")
     val result = Await.result(future, 60.seconds)
 
-    resultAsMap(result)
+    resultAsMap(result, List())
   }
 
   def write(measurementName: String, tags: Map[String, String], data: List[(String, Map[String, Any])]): Boolean = {

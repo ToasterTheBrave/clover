@@ -17,6 +17,8 @@ object TransformMetrics {
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
+  sparkSession.sparkContext.setLogLevel("ERROR")
+
   def main(args: Array[String]) {
     val configFile = args(0)
     val configFiles = Traversable(java.nio.file.Paths.get(s"/home/truppert/projects/master-project/clover/src/main/resources/${configFile}.conf"))
@@ -51,7 +53,8 @@ object TransformMetrics {
       try {
         cloverStore.setDB(transformer.databaseName())
         val lastTransformedTime = cloverStore.getLastProcessedTime(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField)
-        val behindAsMillis = System.currentTimeMillis() - Util.timeStringToLong(lastTransformedTime)
+        val nowMillis = System.currentTimeMillis()
+        val behindAsMillis = nowMillis - Util.timeStringToLong(lastTransformedTime)
         val behindAsSeconds = behindAsMillis / 1000
         val behindHours = (behindAsSeconds / 3600).formatted("%02d")
         val behindMinutes = (behindAsSeconds % 3600 / 60).formatted("%02d")
@@ -59,6 +62,7 @@ object TransformMetrics {
         val behindTime = s"$behindHours:$behindMinutes:$behindSeconds"
 
         println
+        println(Util.timeLongToString(nowMillis))
         println("Running transformers on " + measurement.name.replaceAll("\\.", "_") + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
         println("Last transformed: " + lastTransformedTime)
         println("Currently behind by " + behindTime)
@@ -71,7 +75,6 @@ object TransformMetrics {
         writeTransformations(cloverStore, transformer, measurement, transformedMetrics)
       } catch {
         case e: Exception => println("Exception thrown! - " + e.getMessage)
-
       }
     })
   }
@@ -112,7 +115,7 @@ object TransformMetrics {
     }
 
     val untransformed = database
-      .getSince(measurementName, measurement.partitions, measurement.valueField, lastTransformedTime, 17, 10000)
+      .getSince(measurementName, measurement.partitions, measurement.valueField, lastTransformedTime, 17, 5000)
 
     println("Measurements to transform: " + untransformed.size)
 

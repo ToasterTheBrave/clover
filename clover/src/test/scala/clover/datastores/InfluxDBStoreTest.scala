@@ -23,7 +23,7 @@ class InfluxDBStoreTest extends FunSuite with BeforeAndAfter with MockitoSugar {
     when(queryResult.series).thenReturn(List(series))
 
     assert(
-      influxDB.resultAsMap(queryResult)
+      influxDB.resultAsMap(queryResult, List())
       ==
       List(
         Map(
@@ -41,7 +41,7 @@ class InfluxDBStoreTest extends FunSuite with BeforeAndAfter with MockitoSugar {
   test("resultAsMap - Empty list when empty result") {
     val queryResult = mock[QueryResult]
     when(queryResult.series).thenReturn(List())
-    assert(influxDB.resultAsMap(queryResult) == List())
+    assert(influxDB.resultAsMap(queryResult, List()) == List())
   }
 
 }

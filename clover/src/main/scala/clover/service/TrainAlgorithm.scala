@@ -16,6 +16,8 @@ object TrainAlgorithm {
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
+  sparkSession.sparkContext.setLogLevel("ERROR")
+
   def main(args: Array[String]) {
     val configFile = args(0)
     val configFiles = Traversable(java.nio.file.Paths.get(s"/home/truppert/projects/master-project/clover/src/main/resources/${configFile}.conf"))
@@ -51,13 +53,7 @@ object TrainAlgorithm {
 
       try {
         val model = algorithm.train(measurement, measurementsDF)
-        val modelFileLocation = algorithm.modelLocation() + measurement.name.replaceAll("\\.", "_") + "-" + measurement.valueField
-        val r2 = model.summary.r2adj
-        if(r2 >= .3) {
-          model.save(modelFileLocation)
-        } else {
-          println(s"WARNING - not saving model because of low r2: ${r2}")
-        }
+        algorithm.saveModel(model, measurement)
       } catch {
         case e: Exception => println("Exception thrown! - " + e.getMessage)
       }

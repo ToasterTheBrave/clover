@@ -17,6 +17,8 @@ object EvaluateMetrics {
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
+  sparkSession.sparkContext.setLogLevel("ERROR")
+
   def main(args: Array[String]) {
     val configFile = args(0)
     val configFiles = Traversable(java.nio.file.Paths.get(s"/home/truppert/projects/master-project/clover/src/main/resources/${configFile}.conf"))
@@ -52,7 +54,8 @@ object EvaluateMetrics {
         cloverStore.setDB(algorithm.evaluatedDatabaseName())
         val lastEvaluatedTime = cloverStore.getLastProcessedTime(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField)
 
-        val behindAsMillis = System.currentTimeMillis() - Util.timeStringToLong(lastEvaluatedTime)
+        val nowMillis = System.currentTimeMillis()
+        val behindAsMillis = nowMillis - Util.timeStringToLong(lastEvaluatedTime)
         val behindAsSeconds = behindAsMillis / 1000
         val behindHours = (behindAsSeconds / 3600).formatted("%02d")
         val behindMinutes = (behindAsSeconds % 3600 / 60).formatted("%02d")
@@ -60,12 +63,14 @@ object EvaluateMetrics {
         val behindTime = s"$behindHours:$behindMinutes:$behindSeconds"
 
         println
+        println(Util.timeLongToString(nowMillis))
         println("Running evaluation on " + measurement.name.replaceAll("\\.", "_") + " : " + measurement.partitions.mkString(",") + " : " + measurement.valueField)
         println("Last evaluated: " + lastEvaluatedTime)
         println("Currently behind by " + behindTime)
 
         cloverStore.setDB(algorithm.transformedDatabaseName())
         val measurementsDF = getTransformedDF(cloverStore, measurement, lastEvaluatedTime)
+        println(s"Evaluating ${measurementsDF.count()}")
 
         val model = algorithm.loadModel(measurement)
 
@@ -116,9 +121,9 @@ object EvaluateMetrics {
       val error = if(actual <= highThreshold && actual >= lowThreshold) {
         0.0
       } else if(actual > highThreshold) {
-        (actual - highThreshold) / highThreshold
+        (actual - highThreshold) / (2 * meanAbsoluteError)
       } else if(actual < lowThreshold) {
-        (actual - lowThreshold) / lowThreshold
+        (actual - lowThreshold) / (2 * meanAbsoluteError)
       } else {
         throw new Exception("Invalid condition")
       }
@@ -152,7 +157,7 @@ object EvaluateMetrics {
   }
 
   def getTransformedDF(database: InfluxDBStore, measurement: Measurement, lastEvalutedTime: String): DataFrame = {
-    val dbResponse = database.getAllSince(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField, lastEvalutedTime, 5000)
+    val dbResponse = database.getAllSince(measurement.name.replaceAll("\\.", "_") + "_" + measurement.valueField, measurement.partitions, lastEvalutedTime, 1000)
     convertTransformedMeasurementsToDF(measurement, dbResponse)
   }
 

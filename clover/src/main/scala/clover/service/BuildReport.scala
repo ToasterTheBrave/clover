@@ -19,6 +19,8 @@ object BuildReport {
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
+  sparkSession.sparkContext.setLogLevel("ERROR")
+
   import sparkSession.implicits._
 
   def main(args: Array[String]) {
@@ -49,7 +51,7 @@ object BuildReport {
     val lastHourDF = getAllMetricsLastHourDF(cloverStore, allMeasurements, datetime)
 
     // Decide on what we need
-    val mostAnomalous = getMostAnomalous(lastHourDF, 10)
+    val mostAnomalous = getMostAnomalous(lastHourDF, 5)
 
     // Build a report using the data points decided on
     val reportData = buildReportData(mostAnomalous)
@@ -104,7 +106,8 @@ object BuildReport {
     val window = Window.partitionBy($"time").orderBy($"absError".desc)
 
     df.filter(row => {
-      row.get(row.fieldIndex("error")) != 0
+      val error = row.get(row.fieldIndex("error")).asInstanceOf[Double]
+      error > 1 || error < -1
     })
       .withColumn("absError", abs($"error"))
       .withColumn("rn", row_number().over(window))
@@ -119,7 +122,6 @@ object BuildReport {
       val measurement = valuesMap("measurement").asInstanceOf[String]
       val valuesField = valuesMap("valueField").asInstanceOf[String]
       val tags = valuesMap("tags").asInstanceOf[String]
-      val value = valuesMap("value").asInstanceOf[Double]
 
       val column = "'" +
         measurement +
@@ -127,9 +129,10 @@ object BuildReport {
         " - " + tags +
         "'"
       val datetime = valuesMap("time").asInstanceOf[String]
-      val error = valuesMap("error").asInstanceOf[Double]
-      val prediction = valuesMap("prediction").asInstanceOf[Double]
-      val meanAbsoluteError = valuesMap("meanAbsoluteError").asInstanceOf[Double]
+      val value = valuesMap("value").asInstanceOf[Double].formatted("%1.2f")
+      val error = valuesMap("error").asInstanceOf[Double].formatted("%1.2f")
+      val prediction = valuesMap("prediction").asInstanceOf[Double].formatted("%1.2f")
+      val meanAbsoluteError = valuesMap("meanAbsoluteError").asInstanceOf[Double].formatted("%1.2f")
       val tooltip = s"$datetime\n$measurement - $valuesField\n$tags\nError: $error\nValue: $value\nExpected: $prediction +/- $meanAbsoluteError"
       (datetime, Map(column -> (error, tooltip)))
     })

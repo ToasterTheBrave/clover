@@ -3,7 +3,7 @@ package clover.transformers
 import clover.{Measurement, Util}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.Window
-import org.apache.spark.sql.functions.{asc, desc, mean, stddev, col, isnan, lag}
+import org.apache.spark.sql.functions.{asc, desc, mean, stddev, col, lag}
 
 class LinearRegressionTransformer(sparkSession: SparkSession) extends Transformer {
 
@@ -13,181 +13,155 @@ class LinearRegressionTransformer(sparkSession: SparkSession) extends Transforme
 
   def transform(df: DataFrame, measurement: Measurement, lastProcessedTime: String): DataFrame = {
 
-    val fullWindow = Window
+//    val fullWindow = Window
+//      .partitionBy(measurement.partitions.map(col):_*)
+//      .orderBy(asc("time"))
+
+//    val changeDF = df.withColumn("change", (col(measurement.valueField) - lag(measurement.valueField, 1).over(fullWindow)) / lag(measurement.valueField, 1).over(fullWindow))
+
+    val window_1024_512 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
+      .rowsBetween(-1024, -512)
 
-    val pctChangeDF = df.withColumn("pctDiff", (col(measurement.valueField) - lag(measurement.valueField, 1).over(fullWindow)) / lag(measurement.valueField, 1).over(fullWindow))
-
-    val last1000Window = Window
+    val window_512_256 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-1000, 0)
+      .rowsBetween(-512, -256)
 
-    val last100Window = Window
+    val window_256_128 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-100, 0)
+      .rowsBetween(-256, -128)
 
-    val last10Window = Window
+    val window_128_64 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-10, 0)
+      .rowsBetween(-128, -64)
 
-    val last9Window = Window
+    val window_64_32 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-9, 0)
+      .rowsBetween(-64, -32)
 
-    val last8Window = Window
+    val window_32_16 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-8, 0)
+      .rowsBetween(-32, -16)
 
-    val last7Window = Window
+    val window_16_8 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-7, 0)
+      .rowsBetween(-16, -8)
 
-    val last6Window = Window
+    val window_8_4 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-6, 0)
+      .rowsBetween(-8, -4)
 
-    val last5Window = Window
+    val window_4_2 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-5, 0)
+      .rowsBetween(-4, -2)
 
-    val last4Window = Window
+    val window_2_1 = Window
       .partitionBy(measurement.partitions.map(col):_*)
       .orderBy(asc("time"))
-      .rowsBetween(-4, 0)
+      .rowsBetween(-2, -1)
 
-    val last3Window = Window
-      .partitionBy(measurement.partitions.map(col):_*)
-      .orderBy(asc("time"))
-      .rowsBetween(-3, 0)
+    val value_1024_512_stddev = stddev(measurement.valueField).over(window_1024_512)
+    val value_1024_512_mean = mean(measurement.valueField).over(window_1024_512)
+    val value_512_256_stddev = stddev(measurement.valueField).over(window_512_256)
+    val value_512_256_mean = mean(measurement.valueField).over(window_512_256)
+    val value_256_128_stddev = stddev(measurement.valueField).over(window_256_128)
+    val value_256_128_mean = mean(measurement.valueField).over(window_256_128)
+    val value_128_64_stddev = stddev(measurement.valueField).over(window_128_64)
+    val value_128_64_mean = mean(measurement.valueField).over(window_128_64)
+    val value_64_32_stddev = stddev(measurement.valueField).over(window_64_32)
+    val value_64_32_mean = mean(measurement.valueField).over(window_64_32)
+    val value_32_16_stddev = stddev(measurement.valueField).over(window_32_16)
+    val value_32_16_mean = mean(measurement.valueField).over(window_32_16)
+    val value_16_8_stddev = stddev(measurement.valueField).over(window_16_8)
+    val value_16_8_mean = mean(measurement.valueField).over(window_16_8)
+    val value_8_4_stddev = stddev(measurement.valueField).over(window_8_4)
+    val value_8_4_mean = mean(measurement.valueField).over(window_8_4)
+    val value_4_2_stddev = stddev(measurement.valueField).over(window_4_2)
+    val value_4_2_mean = mean(measurement.valueField).over(window_4_2)
+    val value_2_1_stddev = stddev(measurement.valueField).over(window_2_1)
+    val value_2_1_mean = mean(measurement.valueField).over(window_2_1)
 
-    val last2Window = Window
-      .partitionBy(measurement.partitions.map(col):_*)
-      .orderBy(asc("time"))
-      .rowsBetween(-2, 0)
-
-    val last1Window = Window
-      .partitionBy(measurement.partitions.map(col):_*)
-      .orderBy(asc("time"))
-      .rowsBetween(-1, 0)
-
-    val last1000STD = stddev(measurement.valueField).over(last1000Window)
-    val last1000Mean = mean(measurement.valueField).over(last1000Window)
-    val last100STD = stddev(measurement.valueField).over(last100Window)
-    val last100Mean = mean(measurement.valueField).over(last100Window)
-    val last10STD = stddev(measurement.valueField).over(last10Window)
-    val last10Mean = mean(measurement.valueField).over(last10Window)
-    val last9STD = stddev(measurement.valueField).over(last9Window)
-    val last9Mean = mean(measurement.valueField).over(last9Window)
-    val last8STD = stddev(measurement.valueField).over(last8Window)
-    val last8Mean = mean(measurement.valueField).over(last8Window)
-    val last7STD = stddev(measurement.valueField).over(last7Window)
-    val last7Mean = mean(measurement.valueField).over(last7Window)
-    val last6STD = stddev(measurement.valueField).over(last6Window)
-    val last6Mean = mean(measurement.valueField).over(last6Window)
-    val last5STD = stddev(measurement.valueField).over(last5Window)
-    val last5Mean = mean(measurement.valueField).over(last5Window)
-    val last4STD = stddev(measurement.valueField).over(last4Window)
-    val last4Mean = mean(measurement.valueField).over(last4Window)
-    val last3STD = stddev(measurement.valueField).over(last3Window)
-    val last3Mean = mean(measurement.valueField).over(last3Window)
-    val last2STD = stddev(measurement.valueField).over(last2Window)
-    val last2Mean = mean(measurement.valueField).over(last2Window)
-    val last1STD = stddev(measurement.valueField).over(last1Window)
-    val last1Mean = mean(measurement.valueField).over(last1Window)
-
-    val pctDiffLast1000STD = stddev("pctDiff").over(last1000Window)
-    val pctDiffLast1000Mean = mean("pctDiff").over(last1000Window)
-    val pctDiffLast100STD = stddev("pctDiff").over(last100Window)
-    val pctDiffLast100Mean = mean("pctDiff").over(last100Window)
-    val pctDiffLast10STD = stddev("pctDiff").over(last10Window)
-    val pctDiffLast10Mean = mean("pctDiff").over(last10Window)
-    val pctDiffLast9STD = stddev("pctDiff").over(last9Window)
-    val pctDiffLast9Mean = mean("pctDiff").over(last9Window)
-    val pctDiffLast8STD = stddev("pctDiff").over(last8Window)
-    val pctDiffLast8Mean = mean("pctDiff").over(last8Window)
-    val pctDiffLast7STD = stddev("pctDiff").over(last7Window)
-    val pctDiffLast7Mean = mean("pctDiff").over(last7Window)
-    val pctDiffLast6STD = stddev("pctDiff").over(last6Window)
-    val pctDiffLast6Mean = mean("pctDiff").over(last6Window)
-    val pctDiffLast5STD = stddev("pctDiff").over(last5Window)
-    val pctDiffLast5Mean = mean("pctDiff").over(last5Window)
-    val pctDiffLast4STD = stddev("pctDiff").over(last4Window)
-    val pctDiffLast4Mean = mean("pctDiff").over(last4Window)
-    val pctDiffLast3STD = stddev("pctDiff").over(last3Window)
-    val pctDiffLast3Mean = mean("pctDiff").over(last3Window)
-    val pctDiffLast2STD = stddev("pctDiff").over(last2Window)
-    val pctDiffLast2Mean = mean("pctDiff").over(last2Window)
-    val pctDiffLast1STD = stddev("pctDiff").over(last1Window)
-    val pctDiffLast1Mean = mean("pctDiff").over(last1Window)
+//    val change_1024_512_stddev = stddev("change").over(window_1024_512)
+//    val change_1024_512_mean = mean("change").over(window_1024_512)
+//    val change_512_256_stddev = stddev("change").over(window_512_256)
+//    val change_512_256_mean = mean("change").over(window_512_256)
+//    val change_256_128_stddev = stddev("change").over(window_256_128)
+//    val change_256_128_mean = mean("change").over(window_256_128)
+//    val change_128_64_stddev = stddev("change").over(window_128_64)
+//    val change_128_64_mean = mean("change").over(window_128_64)
+//    val change_64_32_stddev = stddev("change").over(window_64_32)
+//    val change_64_32_mean = mean("change").over(window_64_32)
+//    val change_32_16_stddev = stddev("change").over(window_32_16)
+//    val change_32_16_mean = mean("change").over(window_32_16)
+//    val change_16_8_stddev = stddev("change").over(window_16_8)
+//    val change_16_8_mean = mean("change").over(window_16_8)
+//    val change_8_4_stddev = stddev("change").over(window_8_4)
+//    val change_8_4_mean = mean("change").over(window_8_4)
+//    val change_4_2_stddev = stddev("change").over(window_4_2)
+//    val change_4_2_mean = mean("change").over(window_4_2)
+//    val change_2_1_stddev = stddev("change").over(window_2_1)
+//    val change_2_1_mean = mean("change").over(window_2_1)
+//    val change_1_0_stddev = stddev("change").over(window_1_0)
 
     val columns = List(
         col("time"),
-        col(measurement.valueField),
-        col("pctDiff")
+        col(measurement.valueField)
+//        col("change")
       ) ++
       measurement.partitions.map(col) ++
       List(
-        last1000STD as "last1000STD",
-        last1000Mean as "last1000Mean",
-        last100STD as "last100STD",
-        last100Mean as "last100Mean",
-        last10STD as "last10STD",
-        last10Mean as "last10Mean",
-        last9STD as "last9STD",
-        last9Mean as "last9Mean",
-        last8STD as "last8STD",
-        last8Mean as "last8Mean",
-        last7STD as "last7STD",
-        last7Mean as "last7Mean",
-        last6STD as "last6STD",
-        last6Mean as "last6Mean",
-        last5STD as "last5STD",
-        last5Mean as "last5Mean",
-        last4STD as "last4STD",
-        last4Mean as "last4Mean",
-        last3STD as "last3STD",
-        last3Mean as "last3Mean",
-        last2STD as "last2STD",
-        last2Mean as "last2Mean",
-        last1STD as "last1STD",
-        last1Mean as "last1Mean",
-        pctDiffLast1000STD as "pctDiffLast1000STD",
-        pctDiffLast1000Mean as "pctDiffLast1000Mean",
-        pctDiffLast100STD as "pctDiffLast100STD",
-        pctDiffLast100Mean as "pctDiffLast100Mean",
-        pctDiffLast10STD as "pctDiffLast10STD",
-        pctDiffLast10Mean as "pctDiffLast10Mean",
-        pctDiffLast9STD as "pctDiffLast9STD",
-        pctDiffLast9Mean as "pctDiffLast9Mean",
-        pctDiffLast8STD as "pctDiffLast8STD",
-        pctDiffLast8Mean as "pctDiffLast8Mean",
-        pctDiffLast7STD as "pctDiffLast7STD",
-        pctDiffLast7Mean as "pctDiffLast7Mean",
-        pctDiffLast6STD as "pctDiffLast6STD",
-        pctDiffLast6Mean as "pctDiffLast6Mean",
-        pctDiffLast5STD as "pctDiffLast5STD",
-        pctDiffLast5Mean as "pctDiffLast5Mean",
-        pctDiffLast4STD as "pctDiffLast4STD",
-        pctDiffLast4Mean as "pctDiffLast4Mean",
-        pctDiffLast3STD as "pctDiffLast3STD",
-        pctDiffLast3Mean as "pctDiffLast3Mean",
-        pctDiffLast2STD as "pctDiffLast2STD",
-        pctDiffLast2Mean as "pctDiffLast2Mean",
-        pctDiffLast1STD as "pctDiffLast1STD",
-        pctDiffLast1Mean as "pctDiffLast1Mean"
+        value_1024_512_stddev as "value_1024_512_stddev",
+        value_1024_512_mean as "value_1024_512_mean",
+        value_512_256_stddev as "value_512_256_stddev",
+        value_512_256_mean as "value_512_256_mean",
+        value_256_128_stddev as "value_256_128_stddev",
+        value_256_128_mean as "value_256_128_mean",
+        value_128_64_stddev as "value_128_64_stddev",
+        value_128_64_mean as "value_128_64_mean",
+        value_64_32_stddev as "value_64_32_stddev",
+        value_64_32_mean as "value_64_32_mean",
+        value_32_16_stddev as "value_32_16_stddev",
+        value_32_16_mean as "value_32_16_mean",
+        value_16_8_stddev as "value_16_8_stddev",
+        value_16_8_mean as "value_16_8_mean",
+        value_8_4_stddev as "value_8_4_stddev",
+        value_8_4_mean as "value_8_4_mean",
+        value_4_2_stddev as "value_4_2_stddev",
+        value_4_2_mean as "value_4_2_mean",
+        value_2_1_stddev as "value_2_1_stddev",
+        value_2_1_mean as "value_2_1_mean"
+//        change_1024_512_stddev as "change_1024_512_stddev",
+//        change_1024_512_mean as "change_1024_512_mean",
+//        change_512_256_stddev as "change_512_256_stddev",
+//        change_512_256_mean as "change_512_256_mean",
+//        change_256_128_stddev as "change_256_128_stddev",
+//        change_256_128_mean as "change_256_128_mean",
+//        change_128_64_stddev as "change_128_64_stddev",
+//        change_128_64_mean as "change_128_64_mean",
+//        change_64_32_stddev as "change_64_32_stddev",
+//        change_64_32_mean as "change_64_32_mean",
+//        change_32_16_stddev as "change_32_16_stddev",
+//        change_32_16_mean as "change_32_16_mean",
+//        change_16_8_stddev as "change_16_8_stddev",
+//        change_16_8_mean as "change_16_8_mean",
+//        change_8_4_stddev as "change_8_4_stddev",
+//        change_8_4_mean as "change_8_4_mean",
+//        change_4_2_stddev as "change_4_2_stddev",
+//        change_4_2_mean as "change_4_2_mean",
+//        change_2_1_stddev as "change_2_1_stddev",
+//        change_2_1_mean as "change_2_1_mean",
       )
-    pctChangeDF.select(columns:_*)
+    df.select(columns:_*)
       .where("time >= " + Util.timeStringToLong(lastProcessedTime))
       .na.fill(0)
-      .orderBy(desc("time"))
   }
 }

@@ -1,6 +1,6 @@
 package clover.service
 
-import clover.{Measurement, MetricSource, MetricSource}
+import clover.{Measurement, MetricSource}
 import clover.datastores.InfluxDBStore
 import org.apache.spark.sql.SparkSession
 import org.scalatest.FunSuite

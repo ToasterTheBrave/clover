@@ -1,11 +1,13 @@
 package clover.algorithms
 
 import clover.Measurement
+import java.io._
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
+import scala.io.Source
 
 class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
 
@@ -23,12 +25,32 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
     "/home/truppert/projects/master-project/clover/data/models/linear-regression/"
   }
 
+  def saveModel(model: LinearRegressionModel, measurement: Measurement): Unit = {
+    val modelFolderLocation = modelLocation() + measurement.name.replaceAll("\\.", "_") + "-" + measurement.valueField
+    val r2 = model.summary.r2adj
+    if(r2 >= .3) {
+      model.save(modelFolderLocation)
+
+      val meanAbsoluteErrorPW = new PrintWriter(new File(modelFolderLocation + "/mean-absolute-error.txt"))
+      meanAbsoluteErrorPW.write(s"${model.summary.meanAbsoluteError}")
+      meanAbsoluteErrorPW.close()
+
+      val r2adjPW = new PrintWriter(new File(modelFolderLocation + "/r2adj.txt"))
+      r2adjPW.write(s"$r2")
+      r2adjPW.close()
+
+    } else {
+      println(s"WARNING - not saving model because of low r2: ${r2}")
+    }
+
+  }
+
   def colsToVector(measurement: Measurement, df: DataFrame, labelField: String): DataFrame = {
     val inputCols = df.columns.filter(x => {
-      val pattern = if(labelField == "pctDiff") {
-        "^pctDiffLast.*".r
+      val pattern = if(labelField == "change") {
+        "^change.*".r
       } else {
-        "^last.*".r
+        "^value.*".r
       }
       x match {
         case pattern() => true
@@ -41,7 +63,8 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
       .setOutputCol("features")
 
     val measurementColumns = df.columns.filter(x => {
-      (List("time", measurement.valueField, "pctDiff") ++ measurement.partitions).contains(x)
+      (List("time", measurement.valueField) ++ measurement.partitions).contains(x)
+//      (List("time", measurement.valueField, "change") ++ measurement.partitions).contains(x)
     })
     val selectColumns = (measurementColumns ++ List("features")).map(x => {
       col(x)
@@ -61,24 +84,25 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
       .setLabelCol(measurement.valueField)
     val valueModel = valueLinearRegression.fit(valueDfSplit(0))
     val valueEvaluations = valueModel.evaluate(valueDfSplit(1))
+    println(s"r2adj: ${valueEvaluations.r2adj}")
 
-    val pctDiffVector = colsToVector(measurement, df, "pctDiff")
-    val pctDiffDfSplit = pctDiffVector.randomSplit(Array(.8, .2))
-    val pctDiffLinearRegression = new LinearRegression()
-      .setMaxIter(100)
-      .setRegParam(1)
-      .setElasticNetParam(0.8)
-      .setLabelCol("pctDiff")
-    val pctDiffModel = pctDiffLinearRegression.fit(pctDiffDfSplit(0))
-    val pctDiffEvaluations = pctDiffModel.evaluate(pctDiffDfSplit(1))
-
-    if(pctDiffEvaluations.r2adj > valueEvaluations.r2adj) {
-      println(s"choosing pctDiff model : (pct r2 ${pctDiffEvaluations.r2adj}) > (value r2 ${valueEvaluations.r2adj})")
-      pctDiffModel
-    } else {
-      println(s"choosing value model : (pct r2 ${pctDiffEvaluations.r2adj}) <= (value r2 ${valueEvaluations.r2adj})")
+//    val changeVector = colsToVector(measurement, df, "change")
+//    val changeDfSplit = changeVector.randomSplit(Array(.8, .2))
+//    val changeLinearRegression = new LinearRegression()
+//      .setMaxIter(100)
+//      .setRegParam(1)
+//      .setElasticNetParam(0.8)
+//      .setLabelCol("change")
+//    val changeModel = changeLinearRegression.fit(changeDfSplit(0))
+//    val changeEvaluations = changeModel.evaluate(changeDfSplit(1))
+//
+//    if(changeEvaluations.r2adj > valueEvaluations.r2adj) {
+//      println(s"choosing change model : (pct r2 ${changeEvaluations.r2adj}) > (value r2 ${valueEvaluations.r2adj})")
+//      changeModel
+//    } else {
+//      println(s"choosing value model : (pct r2 ${changeEvaluations.r2adj}) <= (value r2 ${valueEvaluations.r2adj})")
       valueModel
-    }
+//    }
   }
 
   def loadModel(measurement: Measurement): LinearRegressionModel = {
@@ -86,27 +110,35 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
   }
 
   def evaluate(measurement: Measurement, model: LinearRegressionModel, df: DataFrame): DataFrame = {
+    val modelFolderLocation = modelLocation() + measurement.name.replaceAll("\\.", "_") + "-" + measurement.valueField
+
+    val bufferedSource = Source.fromFile(modelFolderLocation + "/mean-absolute-error.txt")
+    val contents = bufferedSource.getLines.mkString("")
+    val meanAbsoluteError = contents.toDouble
+
     val vector = colsToVector(measurement, df, model.getLabelCol)
 
-    val evaluation = model.evaluate(vector)
+    val predictions = model.transform(vector)
 
-    buildEvaluatedDF(measurement, evaluation.predictions, evaluation.meanAbsoluteError)
+    buildEvaluatedDF(measurement, predictions, meanAbsoluteError)
   }
 
   def buildEvaluatedDF(measurement: Measurement, predictions: DataFrame, meanAbsoluteError: Double): DataFrame = {
-    val columns = List("time", measurement.valueField, "pctDiff", "prediction", "meanAbsoluteError") ++ measurement.partitions
+    val columns = List("time", measurement.valueField, "prediction", "meanAbsoluteError") ++ measurement.partitions
+//    val columns = List("time", measurement.valueField, "change", "prediction", "meanAbsoluteError") ++ measurement.partitions
     val schema = columns.map(x => {
       x match {
         case "prediction" => StructField(x, DoubleType)
         case "meanAbsoluteError" => StructField(x, DoubleType)
         case measurement.valueField => StructField(x, DoubleType)
-        case "pctDiff" => StructField(x, DoubleType)
+//        case "change" => StructField(x, DoubleType)
         case _ => StructField(x, StringType)
       }
     })
 
     val rows = predictions.collect.map(row => {
-      val valuesMap = row.getValuesMap(List("time", measurement.valueField, "pctDiff", "prediction") ++ measurement.partitions)
+      val valuesMap = row.getValuesMap(List("time", measurement.valueField, "prediction") ++ measurement.partitions)
+//      val valuesMap = row.getValuesMap(List("time", measurement.valueField, "change", "prediction") ++ measurement.partitions)
 
       val partitionValues = measurement.partitions.map(partition => {
         valuesMap(partition).asInstanceOf[String]
@@ -115,7 +147,7 @@ class LinearRegressionAlgorithm(sparkSession: SparkSession) extends Algorithm {
       val mergedList = List(
         valuesMap("time").asInstanceOf[String],
         valuesMap(measurement.valueField),
-        valuesMap("pctDiff"),
+//        valuesMap("change"),
         valuesMap("prediction"),
         meanAbsoluteError
       ) ++ partitionValues
